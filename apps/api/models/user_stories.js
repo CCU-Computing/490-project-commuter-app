@@ -1,7 +1,7 @@
 //user story 1
 
-const SEMESTER_BASE_MIN = { Fall: 34, Spring: 30, Summer: 24 }; // rough baseline minutes
-const WEEK_FACTOR = { 1: 1.15, 2: 1.05, 3: 1.00, 4: 1.00, 5: 0.98 }; // start-of-term surge
+const SEMESTER_BASE_MIN = { Fall: 34, Spring: 30, Summer: 24 };
+const WEEK_FACTOR = { 1: 1.15, 2: 1.05, 3: 1.00, 4: 1.00, 5: 0.98 }; 
 const DAY_FACTOR = { Mon: 1.15, Tue: 1.10, Wed: 1.10, Thu: 1.08, Fri: 1.05, Sat: 0.80, Sun: 0.75 };
 const WEATHER_FACTOR = { clear: 1.00, rain: 1.10, storm: 1.20 };
 
@@ -9,17 +9,17 @@ const WEATHER_FACTOR = { clear: 1.00, rain: 1.10, storm: 1.20 };
 function todFactor(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
   const t = h + m / 60;
-  if (t >= 6 && t < 9) return 1.25;     // AM rush
-  if (t >= 9 && t < 15) return 1.00;    // mid-day
-  if (t >= 15 && t < 18) return 1.30;   // PM rush
-  if (t >= 18 && t < 21) return 1.05;   // evening
-  return 0.90;                           // late night / very early
+  if (t >= 6 && t < 9) return 1.25;     
+  if (t >= 9 && t < 15) return 1.00;   
+  if (t >= 15 && t < 18) return 1.30;   
+  if (t >= 18 && t < 21) return 1.05;   
+  return 0.90;                           
 }
 
 function jitterMinutes(key, spread = 3) {
   let h = 2166136261;
   for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
-  return ((h >>> 0) % (2 * spread + 1)) - spread; // integer in [-spread, +spread]
+  return ((h >>> 0) % (2 * spread + 1)) - spread; 
 }
 
 function estimateDriveMinutes({ semester, weekOfMonth, day, departTime, weather = "clear" }) {
@@ -31,7 +31,7 @@ function estimateDriveMinutes({ semester, weekOfMonth, day, departTime, weather 
 
   const raw = base * wf * df * tf * wfz;
   const noise = jitterMinutes(`${semester}|${weekOfMonth}|${day}|${departTime}|${weather}`, 3);
-  return Math.max(8, Math.round(raw + noise)); // never below 8 min
+  return Math.max(8, Math.round(raw + noise)); 
 }
 
 
