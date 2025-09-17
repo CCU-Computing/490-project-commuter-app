@@ -1,18 +1,19 @@
 /* parkingStatus file used for creating and updating the web page showing parking lot status.
-    Desc: Map showing parking lot status with colored overlays over parking lots.
+    Desc: Map showing parking lot status with colored overlays over parking lots using webGL.
     Image courtesy of maps.google.com
 */
 
 // URL to the image (served by Express at /data)
 const imageUrl = "/data/campus.png";
-
-// Array of rectangle overlays; each has x, y, width, height, color [R,G,B,A]
+var time = 0; //Placeholdeer - change this to get time from html input
+// Array of rectangle overlays; each has x, y, width, height, color [R,G,B,A]  
+// - Need to update to better fit parking lots areas
 const lotBoxes = [
-  { x: 684, y: 870, w: 310, h: 170, color: [1.0, 0.0, 0.0, 0.35] }, // Red (KK)
-  { x: 867, y: 430, w: 280, h: 250, color: [0.0, 0.5, 0.0, 0.35] }, // Dark Green (GG)
-  { x: 211, y: 930, w: 220, h: 130, color: [1.0, 1.0, 0.0, 0.35] }, // Yellow (OO)
-  { x: 160, y: 360, w: 100, h: 100, color: [1.0, 0.0, 0.0, 0.35] }, // Red (AA)
-  { x: 1450, y: 400, w: 125, h: 100, color: [1.0, 0.0, 0.0, 0.35] }, // Red (BBB)
+  { id: 'KK', x: 684, y: 870, w: 310, h: 170, color: setColor(getStatus("KK", time)) }, // Red (KK)
+  { id: 'GG', x: 867, y: 430, w: 280, h: 250, color: setColor(getStatus("GG", time)) }, // Dark Green (GG)
+  { id: 'OO', x: 211, y: 930, w: 220, h: 130, color: setColor(getStatus("OO", time)) }, // Yellow (OO)
+  { id: 'AA', x: 160, y: 360, w: 100, h: 100, color: setColor(getStatus("AA", time)) }, // Red (AA)
+  { id: 'BBB', x: 1450, y: 400, w: 125, h: 100, color: setColor(getStatus("BBB", time)) }, // Red (BBB)
 ];
 
 // Vertex/Fragment shaders (image pass)
@@ -59,15 +60,56 @@ void main() {
 }
 `;
 
-// Random status generator (kept for your future slider logic)
-function getStatus(time) {
-  const status = Math.floor(Math.random() * 3); // 0..2
-  switch (status) {
-    case 0: return [1.0, 0.0, 0.0];
-    case 1: return [1.0, 1.0, 0.0];
-    default: return [0.0, 0.5, 0.0];
-  }
+
+/*------------------------------------------------------------------------------- Functions-------------------------------------------------------------------------------------------- */
+
+
+/*Set up a get status function to update the status of the parking lots
+desc: This function will update the lotBoxes colors based on the time step
+        It will simulate the parking lot status changing over time.
+param time (type)- the time to get the status for
+return: status (int) - the status of the parking lot (0 = full, 1 = half, Default: empty)
+
+*/
+function getStatus(id, time) {
+  //Take time and request the status of the parking lots
+  //for now just return a random status for testing)
+  var status = Math.floor(Math.random() * 3); //Random number between 0 and 2 (can add more options later)
+  return status;
 }
+
+/*setColor(status)
+desc: This function will set the color of the parking lot based on the status
+param status (int) - the status of the parking lot (0 = Red, 1 = Yellow, Default: Dark Green)
+return: color (array [R, G, B, A]) - the color of the parking lot based on the status
+
+*/
+function setColor(status) {
+  switch (status) {
+    case 0: //Red
+      var r = 1.0;
+      var g = 0.0;
+      var b = 0.0;
+      break;
+    case 1: //Yellow
+      var r = 1.0;
+      var g = 1.0;
+      var b = 0.0;
+      break;
+    default: //Dark Green
+      var r = 0.0;
+      var g = 0.5;
+      var b = 0.0;
+      break;
+  }
+  var a = 0.38; //Alpha value (transparency)
+
+  //return the color vector
+  return [r, g, b, a];
+}
+
+/*----------------------------------------------------------------------Req. Functions--------------------------------------------------------------------------------------------- */
+
 
 // Compile shaders (fixed compile status check)
 function createShader(gl, type, source) {
