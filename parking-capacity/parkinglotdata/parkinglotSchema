@@ -1,0 +1,148 @@
+-- ===============================
+-- parkinglotSchema.sql
+-- Coastal Carolina Parking Database Schema (MySQL-compatible)
+-- ===============================
+
+CREATE DATABASE IF NOT EXISTS ccuparkinglot CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+USE ccuparkinglot;
+
+START TRANSACTION;
+
+-- Drop existing tables (for re-runs)
+DROP TABLE IF EXISTS parking_rules;
+DROP TABLE IF EXISTS capacity_changes;
+DROP TABLE IF EXISTS lot_usage_stats;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS shuttle_stops;
+DROP TABLE IF EXISTS shuttle_routes;
+DROP TABLE IF EXISTS permits;
+DROP TABLE IF EXISTS lots;
+DROP TABLE IF EXISTS lot_types;
+DROP TABLE IF EXISTS campuses;
+DROP TABLE IF EXISTS campus_parking_summary;
+
+-- Campuses (main, east, off-campus)
+CREATE TABLE IF NOT EXISTS campuses (
+    campus_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE,
+    description TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Lot types (surface, gated, ADA, event)
+CREATE TABLE IF NOT EXISTS lot_types (
+    lot_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Lots
+CREATE TABLE IF NOT EXISTS lots (
+    lot_id INT AUTO_INCREMENT PRIMARY KEY,
+    campus_id INT NULL,
+    code VARCHAR(50) NOT NULL,
+    display_name VARCHAR(150),
+    lot_type_id INT NULL,
+    capacity INT NOT NULL DEFAULT 0,
+    is_ada BOOLEAN DEFAULT FALSE,
+    is_reserved BOOLEAN DEFAULT FALSE,
+    requires_permit BOOLEAN DEFAULT TRUE,
+    location_desc TEXT,
+    notes TEXT,
+    UNIQUE KEY uq_campus_code (campus_id, code),
+    KEY idx_lots_code (code),
+    CONSTRAINT fk_lots_campus FOREIGN KEY (campus_id) REFERENCES campuses(campus_id) ON DELETE SET NULL,
+    CONSTRAINT fk_lots_lottype FOREIGN KEY (lot_type_id) REFERENCES lot_types(lot_type_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Permits
+CREATE TABLE IF NOT EXISTS permits (
+    permit_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    valid_for VARCHAR(100),
+    cost_cents INT DEFAULT 0,
+    seasonal BOOLEAN DEFAULT FALSE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Shuttle routes
+CREATE TABLE IF NOT EXISTS shuttle_routes (
+    route_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    origin VARCHAR(150),
+    destination VARCHAR(150),
+    typical_wait_minutes_min INT,
+    typical_wait_minutes_max INT,
+    notes TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Shuttle stops
+CREATE TABLE IF NOT EXISTS shuttle_stops (
+    stop_id INT AUTO_INCREMENT PRIMARY KEY,
+    route_id INT NOT NULL,
+    stop_order INT NOT NULL,
+    stop_name VARCHAR(150) NOT NULL,
+    near_lot_id INT NULL,
+    estimated_boarding_minutes INT,
+    CONSTRAINT fk_stops_route FOREIGN KEY (route_id) REFERENCES shuttle_routes(route_id) ON DELETE CASCADE,
+    CONSTRAINT fk_stops_near_lot FOREIGN KEY (near_lot_id) REFERENCES lots(lot_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Usage statistics
+CREATE TABLE IF NOT EXISTS lot_usage_stats (
+    usage_id INT AUTO_INCREMENT PRIMARY KEY,
+    lot_id INT NOT NULL,
+    sample_date DATE NOT NULL,
+    occupied_count INT NOT NULL DEFAULT 0,
+    peak_hour TIME,
+    notes TEXT,
+    UNIQUE KEY uq_usage_lot_date (lot_id, sample_date),
+    CONSTRAINT fk_usage_lot FOREIGN KEY (lot_id) REFERENCES lots(lot_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Capacity change history
+CREATE TABLE IF NOT EXISTS capacity_changes (
+    change_id INT AUTO_INCREMENT PRIMARY KEY,
+    lot_id INT NOT NULL,
+    changed_on DATE NOT NULL,
+    old_capacity INT,
+    new_capacity INT,
+    reason TEXT,
+    CONSTRAINT fk_capacity_lot FOREIGN KEY (lot_id) REFERENCES lots(lot_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Events
+CREATE TABLE IF NOT EXISTS events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    event_date DATE NOT NULL,
+    expected_attendance INT,
+    extra_parking BOOLEAN DEFAULT FALSE,
+    notes TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Parking rules
+CREATE TABLE IF NOT EXISTS parking_rules (
+    rule_id INT AUTO_INCREMENT PRIMARY KEY,
+    short_code VARCHAR(50) UNIQUE,
+    description TEXT NOT NULL,
+    effective_from DATE,
+    effective_to DATE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Campus-wide summary
+CREATE TABLE IF NOT EXISTS campus_parking_summary (
+    summary_id INT AUTO_INCREMENT PRIMARY KEY,
+    campus_id INT NULL,
+    total_spaces INT,
+    student_spaces INT,
+    faculty_staff_spaces INT,
+    last_updated DATE,
+    CONSTRAINT fk_summary_campus FOREIGN KEY (campus_id) REFERENCES campuses(campus_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Additional Indexes
+-- Note: the UNIQUE KEY uq_usage_lot_date already creates an index on (lot_id, sample_date),
+-- so an extra CREATE INDEX is redundant. If you still want a non-unique index, use:
+-- CREATE INDEX idx_usage_lot_date ON lot_usage_stats (lot_id, sample_date);
+
+COMMIT;
