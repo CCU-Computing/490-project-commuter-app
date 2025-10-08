@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Commuter App – Leaflet CRUD Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet.draw -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+  <style>
+    :root { --bg:#0f1115; --panel:#161923; --muted:#8892a6; --accent:#4cc38a; --danger:#ef476f; --text:#e6edf3; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell; background:var(--bg); color:var(--text); }
+    .wrap { display:grid; grid-template-columns: 360px 1fr; height: 100vh; }
+    aside { background:var(--panel); border-right:1px solid #222739; padding:14px; overflow:auto; }
+    h1 { font-size:18px; margin:0 0 8px 0; }
+    h2 { font-size:14px; margin:16px 0 8px 0; color:var(--muted); letter-spacing:.3px; text-transform:uppercase;}
+    .card { background:#111420; border:1px solid #20263b; border-radius:12px; padding:12px; margin-bottom:12px; }
+    label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+    input[type="text"] { width:100%; padding:8px 10px; border-radius:8px; border:1px solid #2a3148; background:#0b0e16; color:var(--text); }
+    .row { display:flex; gap:8px; }
+    button { cursor:pointer; border:1px solid #2a3148; background:#161b2b; color:var(--text); padding:8px 10px; border-radius:10px; }
+    button.primary { background:var(--accent); border-color:transparent; color:#0a0f14; font-weight:600; }
+    button.danger { background: #2a0f18; border-color:#411925; color:#ff7590; }
+    small.muted { color:var(--muted); display:block; margin-top:6px; }
+    .list { display:flex; flex-direction:column; gap:8px; }
+    .item { padding:8px; border:1px dashed #2a3148; border-radius:10px; }
+    .item .actions { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+    #map { width:100%; height:100%; }
+    .toast { position: fixed; bottom: 16px; left: 16px; background: #101520; border:1px solid #2a3148; padding:10px 12px; border-radius:10px; color:#cfe5ff; opacity:0; transform: translateY(8px); transition: all .25s ease; pointer-events:none;}
+    .toast.show { opacity:1; transform: translateY(0); }
+    .pill { display:inline-block; border:1px solid #2a3148; padding:2px 8px; border-radius:999px; font-size:11px; color:#a4b1c9; }
+    .legend { display:flex; gap:8px; align-items:center; font-size:12px; color:#a4b1c9; }
+    .legend span.box { width:12px; height:12px; display:inline-block; border-radius:3px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside>
+    <h1>Commuter App — Leaflet CRUD</h1>
+
+    <div class="card">
+      <h2>API</h2>
+      <div class="row">
+        <button id="reloadBtn">Reload Layers</button>
+        <span class="pill" id="apiBasePill"></span>
+      </div>
+      <small class="muted">Make sure your API is running and CORS is enabled.</small>
+    </div>
+
+    <div class="card">
+      <h2>Create Route</h2>
+      <label>Route name</label>
+      <input id="routeName" type="text" placeholder="Blue Line" />
+      <div class="row" style="margin-top:8px;">
+        <button class="primary" id="drawRouteBtn">Draw Polyline</button>
+        <button id="saveRouteBtn" disabled>Save Route</button>
+      </div>
+      <small class="muted">Click “Draw Polyline”, click map to add vertices, finish with double-click. Then “Save Route”.</small>
+    </div>
+
+    <div class="card">
+      <h2>Create Stop</h2>
+      <label>Stop name</label>
+      <input id="stopName" type="text" placeholder="Main & 4th" />
+      <div class="row" style="margin-top:8px;">
+        <button class="primary" id="addStopBtn">Place Stop</button>
+      </div>
+      <small class="muted">Click “Place Stop”, then click on the map.</small>
+    </div>
+
+    <div class="card">
+      <h2>Routes</h2>
+      <div class="list" id="routesList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Stops</h2>
+      <div class="list" id="stopsList"></div>
+    </div>
+
+    <div class="legend card">
+      <span class="box" style="background:#4cc38a"></span> Routes
+      <span class="box" style="background:#72a7ff"></span> Stops
+    </div>
+  </aside>
+
+  <div id="map"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = localStorage.getItem("API_BASE") || "http://localhost:3000";
+document.getElementById("apiBasePill").textContent = API_BASE;
+
+const toastEl = document.getElementById("toast");
+function toast(msg, ok=true) {
+  toastEl.textContent = msg;
+  toastEl.style.borderColor = ok ? "#2a3148" : "#703040";
+  toastEl.classList.add("show");
+  setTimeout(() => toastEl.classList.remove("show"), 2500);
+}
+
+const map = L.map("map").setView([33.83, -79.00], 12);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: "&copy; OpenStreetMap",
+}).addTo(map);
+
+const drawnRoutes = L.featureGroup().addTo(map);
+const stopsLayer = L.featureGroup().addTo(map);
+
+const drawControl = new L.Control.Draw({
+  draw: {
+    polygon: false, rectangle: false, circle: false, circlemarker: false,
+    marker: false, // stops are created with a custom click tool
+    polyline: { shapeOptions: { color: "#4cc38a", weight: 4 } }
+  },
+  edit: {
+    featureGroup: drawnRoutes,
+    remove: false
+  }
+});
+map.addControl(drawControl);
+
+// State
+let tmpDrawnPolyline = null;
+let placingStop = false;
+let routesIndex = new Map(); // route_id -> layer
+let stopsIndex = new Map();  // stop_id  -> marker
+
+// ---- Helpers
+function geojsonToMultiLineString(geojson) {
+  if (geojson.type === "LineString") {
+    return { type:"MultiLineString", coordinates:[ geojson.coordinates ] };
+  }
+  if (geojson.type === "MultiLineString") return geojson;
+  throw new Error("Only LineString or MultiLineString supported for routes.");
+}
+
+function layerToGeoJSON(layer) {
+  const gj = layer.toGeoJSON().geometry;
+  return gj;
+}
+
+function markerToPointGeoJSON(marker) {
+  const latlng = marker.getLatLng();
+  return { type:"Point", coordinates:[latlng.lng, latlng.lat] };
+}
+
+function addRouteLayer(feature) {
+  const coords = feature.geometry.coordinates.map(line =>
+    line.map(([lng,lat]) => [lat,lng])
+  );
+  const poly = L.polyline(coords, { color:"#4cc38a", weight:4 });
+  poly.addTo(drawnRoutes);
+  poly.bindTooltip(feature.properties?.name || feature.id, { sticky:true });
+  routesIndex.set(feature.id, poly);
+  return poly;
+}
+
+function addStopMarker(feature) {
+  const [lng,lat] = feature.geometry.coordinates;
+  const m = L.marker([lat,lng], { draggable:true }).addTo(stopsLayer);
+  m.bindTooltip(feature.properties?.name || feature.id, { sticky:true });
+  stopsIndex.set(feature.id, m);
+
+  // Save on drag end (PATCH new position)
+  m.on("dragend", async () => {
+    try {
+      const g = markerToPointGeoJSON(m);
+      const body = { geometry: g };
+      const r = await fetch(`${API_BASE}/stops/${feature.id}`, {
+        method:"PATCH", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) throw new Error("Update stop failed");
+      toast("Stop location updated");
+    } catch (e) { console.error(e); toast(e.message, false); }
+  });
+
+  return m;
+}
+
+// ---- Load & render
+async function loadRoutes() {
+  const res = await fetch(`${API_BASE}/routes`);
+  if (!res.ok) throw new Error("Failed to load routes");
+  const fc = await res.json();
+  drawnRoutes.clearLayers();
+  routesIndex.clear();
+  const listEl = document.getElementById("routesList");
+  listEl.innerHTML = "";
+  (fc.features || []).forEach(f => {
+    addRouteLayer(f);
+    const item = document.createElement("div");
+    item.className = "item";
+    item.innerHTML = `
+      <div><strong>${f.properties?.name || "(unnamed)"} </strong><br>
+        <small class="muted">${f.id}</small></div>
+      <div class="actions">
+        <button data-act="zoom" data-id="${f.id}">Zoom</button>
+        <button data-act="edit" data-id="${f.id}">Edit geometry</button>
+        <button class="danger" data-act="del" data-id="${f.id}">Delete</button>
+      </div>`;
+    listEl.appendChild(item);
+  });
+}
+
+async function loadStops() {
+  const res = await fetch(`${API_BASE}/stops`);
+  if (!res.ok) throw new Error("Failed to load stops");
+  const fc = await res.json();
+  stopsLayer.clearLayers();
+  stopsIndex.clear();
+  const listEl = document.getElementById("stopsList");
+  listEl.innerHTML = "";
+  (fc.features || []).forEach(f => {
+    addStopMarker(f);
+    const item = document.createElement("div");
+    item.className = "item";
+    item.innerHTML = `
+      <div><strong>${f.properties?.name || "(unnamed)"} </strong><br>
+        <small class="muted">${f.id}</small></div>
+      <div class="actions">
+        <button data-act="zoom-stop" data-id="${f.id}">Zoom</button>
+        <button class="danger" data-act="del-stop" data-id="${f.id}">Delete</button>
+      </div>`;
+    listEl.appendChild(item);
+  });
+}
+
+async function reloadAll() {
+  await Promise.all([loadRoutes(), loadStops()]);
+  toast("Layers reloaded");
+}
+
+// ---- Create: Route
+document.getElementById("drawRouteBtn").addEventListener("click", () => {
+  // Trigger Leaflet.draw Polyline mode
+  new L.Draw.Polyline(map, drawControl.options.draw.polyline).enable();
+  toast("Drawing mode: click to add vertices, double-click to finish");
+});
+
+map.on(L.Draw.Event.CREATED, (e) => {
+  if (e.layerType === "polyline") {
+    if (tmpDrawnPolyline) map.removeLayer(tmpDrawnPolyline);
+    tmpDrawnPolyline = e.layer;
+    tmpDrawnPolyline.addTo(map);
+    document.getElementById("saveRouteBtn").disabled = false;
+    toast("Polyline ready. Click 'Save Route'.");
+  }
+});
+
+document.getElementById("saveRouteBtn").addEventListener("click", async () => {
+  const name = document.getElementById("routeName").value.trim();
+  if (!tmpDrawnPolyline) return toast("Nothing drawn", false);
+  try {
+    const gj = layerToGeoJSON(tmpDrawnPolyline); // LineString
+    const mls = geojsonToMultiLineString(gj);
+    const body = { name: name || null, geometry: mls };
+    const res = await fetch(`${API_BASE}/routes`, {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error("Create route failed");
+    map.removeLayer(tmpDrawnPolyline); tmpDrawnPolyline = null;
+    document.getElementById("saveRouteBtn").disabled = true;
+    document.getElementById("routeName").value = "";
+    await loadRoutes();
+    toast("Route created");
+  } catch (e) { console.error(e); toast(e.message, false); }
+});
+
+// ---- Create: Stop
+const addStopBtn = document.getElementById("addStopBtn");
+addStopBtn.addEventListener("click", () => {
+  placingStop = true;
+  addStopBtn.disabled = true;
+  toast("Click on the map to place the stop");
+});
+map.on("click", async (e) => {
+  if (!placingStop) return;
+  placingStop = false; addStopBtn.disabled = false;
+  const name = document.getElementById("stopName").value.trim();
+  try {
+    const pt = { type:"Point", coordinates:[e.latlng.lng, e.latlng.lat] };
+    const r = await fetch(`${API_BASE}/stops`, {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ name: name || null, geometry: pt })
+    });
+    if (!r.ok) throw new Error("Create stop failed");
+    document.getElementById("stopName").value = "";
+    await loadStops();
+    toast("Stop created");
+  } catch (err) { console.error(err); toast(err.message, false); }
+});
+
+// ---- Edit & Delete handlers in lists
+document.getElementById("routesList").addEventListener("click", async (ev) => {
+  const btn = ev.target.closest("button"); if (!btn) return;
+  const id = btn.dataset.id;
+  const act = btn.dataset.act;
+  const layer = routesIndex.get(id);
+  if (!layer) return;
+
+  if (act === "zoom") {
+    map.fitBounds(layer.getBounds(), { padding:[20,20] });
+  }
+  if (act === "edit") {
+    // Toggle edit mode for this layer
+    const edit = new L.EditToolbar.Edit(map, { featureGroup: drawnRoutes });
+    edit.enable();
+    toast("Edit mode ON. Drag vertices. Click outside to finish, then press Save Geometry.");
+    // Add a temp Save button
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save Geometry";
+    saveBtn.className = "primary";
+    saveBtn.style.marginTop = "8px";
+    btn.parentElement.appendChild(saveBtn);
+
+    const cleanup = () => { edit.disable(); saveBtn.remove(); };
+
+    saveBtn.addEventListener("click", async () => {
+      try {
+        const gj = layerToGeoJSON(layer);
+        const mls = geojsonToMultiLineString(gj);
+        const res = await fetch(`${API_BASE}/routes/${id}`, {
+          method:"PATCH", headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ geometry: mls })
+        });
+        if (!res.ok) throw new Error("Update route failed");
+        toast("Route geometry saved");
+      } catch (e) { console.error(e); toast(e.message, false); }
+      finally { cleanup(); }
+    });
+  }
+  if (act === "del") {
+    if (!confirm("Delete route? This will remove its stop links as well.")) return;
+    try {
+      const r = await fetch(`${API_BASE}/routes/${id}`, { method:"DELETE" });
+      if (!r.ok && r.status !== 204) throw new Error("Delete route failed");
+      await loadRoutes();
+      toast("Route deleted");
+    } catch (e) { console.error(e); toast(e.message, false); }
+  }
+});
+
+document.getElementById("stopsList").addEventListener("click", async (ev) => {
+  const btn = ev.target.closest("button"); if (!btn) return;
+  const id = btn.dataset.id;
+  const act = btn.dataset.act;
+  const m = stopsIndex.get(id);
+  if (!m) return;
+
+  if (act === "zoom-stop") {
+    map.setView(m.getLatLng(), 16, { animate:true });
+  }
+  if (act === "del-stop") {
+    if (!confirm("Delete stop?")) return;
+    try {
+      const r = await fetch(`${API_BASE}/stops/${id}`, { method:"DELETE" });
+      if (!r.ok && r.status !== 204) throw new Error("Delete stop failed");
+      await loadStops();
+      toast("Stop deleted");
+    } catch (e) { console.error(e); toast(e.message, false); }
+  }
+});
+
+document.getElementById("reloadBtn").addEventListener("click", reloadAll);
+
+// First load
+reloadAll().catch(err => { console.error(err); toast(err.message, false); });
+
+// Expose for quick debugging in console
+window._layers = { routesIndex, stopsIndex, drawnRoutes, stopsLayer };
+window._api = { API_BASE };
+</script>
+</body>
+</html>

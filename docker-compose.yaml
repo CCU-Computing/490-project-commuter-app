@@ -1,0 +1,37 @@
+services:
+  db:
+    platform: linux/amd64         # <-- add this line
+    image: postgis/postgis:16-3.4
+    container_name: transit-db
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-transit}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infrastructure/init:/docker-entrypoint-initdb.d:ro
+
+  # kill pgadmin for now; we’ll bring it back later
+  # pgadmin:
+  #   ...
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: transit-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-transit}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${API_PORT:-3000}
+    ports:
+      - "${API_PORT:-3000}:${API_PORT:-3000}"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
