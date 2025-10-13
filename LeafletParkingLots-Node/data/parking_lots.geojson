@@ -1,0 +1,81 @@
+{
+  "type": "FeatureCollection",
+  "name": "parking-lots",
+  "version": 1,
+  "features": [
+    {
+      "type": "Feature",
+      "id": "lot_A",
+      "properties": {
+        "name": "Lot A",
+        "capacity": 120,
+        "fill": 72,
+        "updatedAt": "2025-10-12T15:12:00Z"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -78.90042,
+              35.00051
+            ],
+            [
+              -78.89995,
+              35.00028
+            ],
+            [
+              -78.9001,
+              34.99998
+            ],
+            [
+              -78.90058,
+              35.0002
+            ],
+            [
+              -78.90042,
+              35.00051
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "lot_B",
+      "properties": {
+        "name": "Lot B",
+        "capacity": 200,
+        "fill": 158,
+        "updatedAt": "2025-10-12T15:12:00Z"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -78.8998,
+              35.0011
+            ],
+            [
+              -78.8993,
+              35.0009
+            ],
+            [
+              -78.8995,
+              35.0007
+            ],
+            [
+              -78.89995,
+              35.00085
+            ],
+            [
+              -78.8998,
+              35.0011
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

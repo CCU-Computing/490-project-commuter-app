@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- This document is the html front end for the prototype of the user story described in the ../api/src/parkingStatus.js file -->
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campus Parking Status</title>
+  <style>
+    body {
+      font-family: system-ui;
+      margin: 0;
+      display: grid;
+      place-items: start center;
+      padding: 16px;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Campus Map Parking Status</h2>
+  <canvas id="glcanvas"></canvas>
+
+  <script src="/src/busroutes.js" defer></script>
+
+  <label for="time">Time:</label>
+  <input type="range" id="time" name="time" min="0" max="23.75" value="12" step=".25" style="width: 800px;">
+  <span id="timeValue">12:00</span>
+  <p>Image courtesy of maps.google.com</p>
+</body>
+
+</html>

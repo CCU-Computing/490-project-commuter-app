@@ -1,0 +1,16 @@
+{
+  "name": "leaflet-parking-lots-viewer",
+  "version": "1.0.0",
+  "description": "Viewer-only Leaflet + OSM app that renders parking lots with color by occupancy. No admin UI.",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
