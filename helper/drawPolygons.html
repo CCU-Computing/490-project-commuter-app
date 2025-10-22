@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Leaflet Polygon Drawer + Save</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Leaflet.draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #app {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            height: 100%;
+        }
+
+        #controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background: #fafafa;
+            border-bottom: 1px solid #e5e5e5;
+            font: 14px/1.3 system-ui, sans-serif;
+        }
+
+        #controls input {
+            padding: 0.35rem 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        #controls button {
+            padding: 0.45rem 0.7rem;
+            border: 1px solid #888;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        #list {
+            margin-left: auto;
+            font-size: 13px;
+            color: #444;
+        }
+
+        #list strong {
+            margin-right: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="controls">
+            <label>ID: <input id="polyId" type="text" placeholder="e.g. Lot-001" /></label>
+            <label>Name: <input id="polyName" type="text" placeholder="e.g. East Garage" /></label>
+            <button id="downloadBtn">Download JSON</button>
+            <div id="list"><strong>Polygons:</strong><span id="count">0</span></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet.draw JS -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+    <script>
+        // --- Map setup ---
+        const map = L.map('map').setView([33.795085, -79.011951], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 20,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        const drawControl = new L.Control.Draw({
+            draw: {
+                polygon: {
+                    allowIntersection: false,
+                    showArea: true,
+                    metric: true,
+                    shapeOptions: { weight: 2 }
+                },
+                polyline: false,
+                rectangle: false,
+                circle: false,
+                marker: false,
+                circlemarker: false
+            },
+            edit: {
+                featureGroup: drawnItems,
+                remove: true
+            }
+        });
+        map.addControl(drawControl);
+
+        // Storage for exported features
+        const features = []; // GeoJSON Feature objects
+
+        // Helpers
+        const $ = (sel) => document.querySelector(sel);
+        const idInput = $('#polyId');
+        const nameInput = $('#polyName');
+        const countEl = $('#count');
+
+        function updateCount() { countEl.textContent = features.length; }
+
+        function latLngsToGeoJSONRing(latlngs) {
+            // Convert Leaflet LatLngs (possibly nested for multi-rings) to a single ring [ [lng,lat], ... ]
+            // Leaflet.draw polygon provides a single outer ring by default.
+            const ring = latlngs.map(ll => [ll.lng, ll.lat]);
+            // Ensure ring is closed per GeoJSON spec
+            if (ring.length > 0) {
+                const first = ring[0], last = ring[ring.length - 1];
+                if (first[0] !== last[0] || first[1] !== last[1]) ring.push([...first]);
+            }
+            return ring;
+        }
+
+        function layerToGeoJSONFeature(layer, properties) {
+            // Support only Polygon from Leaflet.draw setup
+            const latlngs = layer.getLatLngs()[0]; // outer ring
+            const ring = latLngsToGeoJSONRing(latlngs);
+
+            return {
+                type: "Feature",
+                properties: { ...properties },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [ring] // single outer ring, no holes
+                }
+            };
+        }
+
+        // Draw created
+        map.on(L.Draw.Event.CREATED, function (e) {
+            const layer = e.layer;
+            drawnItems.addLayer(layer);
+
+            let theId = (idInput.value || '').trim();
+            let theName = (nameInput.value || '').trim();
+
+            // If not provided, gently prompt or autogenerate
+            if (!theId) {
+                theId = prompt("Enter an ID for this polygon (e.g. Lot-001):", `Lot-${String(features.length + 1).padStart(3, '0')}`) || `Lot-${String(features.length + 1).padStart(3, '0')}`;
+            }
+            if (!theName) {
+                theName = prompt("Enter a Name for this polygon:", `Polygon ${features.length + 1}`) || `Polygon ${features.length + 1}`;
+            }
+
+            const feature = layerToGeoJSONFeature(layer, { id: theId, name: theName });
+            features.push(feature);
+
+            // Simple popup label
+            layer.bindPopup(`<strong>${theName}</strong><br>ID: ${theId}`).openPopup();
+
+            // Clear inputs for convenience
+            idInput.value = '';
+            nameInput.value = '';
+
+            updateCount();
+        });
+
+        // If a polygon is removed via edit toolbar, reflect in export list
+        map.on('draw:deleted', function (e) {
+            const removed = [];
+            e.layers.eachLayer((layer) => {
+                // Attempt to match by coordinates (basic approach for this minimal example)
+                const gj = layerToGeoJSONFeature(layer, {});
+                const key = JSON.stringify(gj.geometry.coordinates);
+                removed.push(key);
+            });
+            // Filter out matching geometries
+            for (let i = features.length - 1; i >= 0; i--) {
+                const key = JSON.stringify(features[i].geometry.coordinates);
+                if (removed.includes(key)) features.splice(i, 1);
+            }
+            updateCount();
+        });
+
+        // Download JSON
+        $('#downloadBtn').addEventListener('click', () => {
+            const fc = {
+                type: "FeatureCollection",
+                features: features
+            };
+            const blob = new Blob([JSON.stringify(fc, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `polygons_${date}.geojson`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            a.remove();
+        });
+    </script>
+</body>
+
+</html>

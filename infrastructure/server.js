@@ -13,6 +13,24 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// --- PHP frontend redirect (non-breaking) ---
+const FRONTEND_PHP_ORIGIN = process.env.FRONTEND_PHP_ORIGIN; // e.g., "http://127.0.0.1:8081"
+if (FRONTEND_PHP_ORIGIN) {
+  // Redirect root and any HTML navigations to the PHP server
+  app.get('/', (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
+  app.get(['/index.php','/index.html'], (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
+  app.use((req, res, next) => {
+    const acceptsHTML = (req.headers.accept || '').includes('text/html');
+    const isApi = req.path.startsWith('/api');
+    if (acceptsHTML && !isApi) return res.redirect(FRONTEND_PHP_ORIGIN + req.originalUrl);
+    next();
+  });
+  // Optional: quiet favicon.ico when using PHP frontend
+  app.get('/favicon.ico', (req, res) => res.status(204).end());
+}
+// --- end PHP frontend block ---
+
+
 // Resolve paths once and log them
 const webDir = path.join(__dirname, '..', 'apps', 'web');
 const dataDir = path.join(__dirname, '..', 'data');
@@ -47,6 +65,8 @@ app.get(/^\/(?!api|data).*/, (req, res, next) => {
     if (err) next(err);
   });
 });
+
+
 
 // Error visibility
 app.use((err, req, res, next) => {
