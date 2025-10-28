@@ -1,0 +1,282 @@
+                {
+                  "AA": {
+                    "capacity": 50,
+                    "slots": {
+                      "monday": {
+                        "07": { "time": "07:00", "occupied": 10 },
+                        "08": { "time": "08:00", "occupied": 18 },
+                        "09": { "time": "09:00", "occupied": 30 },
+                        "10": { "time": "10:00", "occupied": 35 },
+                        "11": { "time": "11:00", "occupied": 40 },
+                        "12": { "time": "12:00", "occupied": 38 },
+                        "13": { "time": "13:00", "occupied": 32 },
+                        "14": { "time": "14:00", "occupied": 25 },
+                        "15": { "time": "15:00", "occupied": 20 },
+                        "16": { "time": "16:00", "occupied": 15 },
+                        "17": { "time": "17:00", "occupied": 12 }
+                      },
+                      "tuesday": {
+                        "07": { "time": "07:00", "occupied": 12 },
+                        "08": { "time": "08:00", "occupied": 20 },
+                        "09": { "time": "09:00", "occupied": 33 },
+                        "10": { "time": "10:00", "occupied": 36 },
+                        "11": { "time": "11:00", "occupied": 42 },
+                        "12": { "time": "12:00", "occupied": 39 },
+                        "13": { "time": "13:00", "occupied": 34 },
+                        "14": { "time": "14:00", "occupied": 26 },
+                        "15": { "time": "15:00", "occupied": 22 },
+                        "16": { "time": "16:00", "occupied": 17 },
+                        "17": { "time": "17:00", "occupied": 13 }
+                      },
+                      "wednesday": {
+                        "07": { "time": "07:00", "occupied": 11 },
+                        "08": { "time": "08:00", "occupied": 19 },
+                        "09": { "time": "09:00", "occupied": 31 },
+                        "10": { "time": "10:00", "occupied": 35 },
+                        "11": { "time": "11:00", "occupied": 39 },
+                        "12": { "time": "12:00", "occupied": 37 },
+                        "13": { "time": "13:00", "occupied": 31 },
+                        "14": { "time": "14:00", "occupied": 24 },
+                        "15": { "time": "15:00", "occupied": 19 },
+                        "16": { "time": "16:00", "occupied": 14 },
+                        "17": { "time": "17:00", "occupied": 10 }
+                      },
+                      "thursday": {
+                        "07": { "time": "07:00", "occupied": 13 },
+                        "08": { "time": "08:00", "occupied": 21 },
+                        "09": { "time": "09:00", "occupied": 34 },
+                        "10": { "time": "10:00", "occupied": 38 },
+                        "11": { "time": "11:00", "occupied": 43 },
+                        "12": { "time": "12:00", "occupied": 40 },
+                        "13": { "time": "13:00", "occupied": 35 },
+                        "14": { "time": "14:00", "occupied": 27 },
+                        "15": { "time": "15:00", "occupied": 23 },
+                        "16": { "time": "16:00", "occupied": 18 },
+                        "17": { "time": "17:00", "occupied": 14 }
+                      },
+                      "friday": {
+                        "07": { "time": "07:00", "occupied": 14 },
+                        "08": { "time": "08:00", "occupied": 22 },
+                        "09": { "time": "09:00", "occupied": 36 },
+                        "10": { "time": "10:00", "occupied": 39 },
+                        "11": { "time": "11:00", "occupied": 44 },
+                        "12": { "time": "12:00", "occupied": 41 },
+                        "13": { "time": "13:00", "occupied": 36 },
+                        "14": { "time": "14:00", "occupied": 28 },
+                        "15": { "time": "15:00", "occupied": 24 },
+                        "16": { "time": "16:00", "occupied": 19 },
+                        "17": { "time": "17:00", "occupied": 15 }
+                      }
+                    }
+                  },
+                  "QQ": {
+                    "capacity": 100,
+                    "slots": {
+                      "monday": {
+                        "07": { "time": "07:00", "occupied": 20 },
+                        "08": { "time": "08:00", "occupied": 40 },
+                        "09": { "time": "09:00", "occupied": 70 },
+                        "10": { "time": "10:00", "occupied": 80 },
+                        "11": { "time": "11:00", "occupied": 90 },
+                        "12": { "time": "12:00", "occupied": 85 },
+                        "13": { "time": "13:00", "occupied": 72 },
+                        "14": { "time": "14:00", "occupied": 60 },
+                        "15": { "time": "15:00", "occupied": 50 },
+                        "16": { "time": "16:00", "occupied": 40 },
+                        "17": { "time": "17:00", "occupied": 32 }
+                      },
+                      "tuesday": {
+                        "07": { "time": "07:00", "occupied": 22 },
+                        "08": { "time": "08:00", "occupied": 42 },
+                        "09": { "time": "09:00", "occupied": 72 },
+                        "10": { "time": "10:00", "occupied": 82 },
+                        "11": { "time": "11:00", "occupied": 92 },
+                        "12": { "time": "12:00", "occupied": 86 },
+                        "13": { "time": "13:00", "occupied": 74 },
+                        "14": { "time": "14:00", "occupied": 62 },
+                        "15": { "time": "15:00", "occupied": 52 },
+                        "16": { "time": "16:00", "occupied": 42 },
+                        "17": { "time": "17:00", "occupied": 34 }
+                      },
+                      "wednesday": {
+                        "07": { "time": "07:00", "occupied": 21 },
+                        "08": { "time": "08:00", "occupied": 41 },
+                        "09": { "time": "09:00", "occupied": 71 },
+                        "10": { "time": "10:00", "occupied": 81 },
+                        "11": { "time": "11:00", "occupied": 89 },
+                        "12": { "time": "12:00", "occupied": 84 },
+                        "13": { "time": "13:00", "occupied": 70 },
+                        "14": { "time": "14:00", "occupied": 58 },
+                        "15": { "time": "15:00", "occupied": 48 },
+                        "16": { "time": "16:00", "occupied": 38 },
+                        "17": { "time": "17:00", "occupied": 30 }
+                      },
+                      "thursday": {
+                        "07": { "time": "07:00", "occupied": 23 },
+                        "08": { "time": "08:00", "occupied": 43 },
+                        "09": { "time": "09:00", "occupied": 73 },
+                        "10": { "time": "10:00", "occupied": 83 },
+                        "11": { "time": "11:00", "occupied": 91 },
+                        "12": { "time": "12:00", "occupied": 87 },
+                        "13": { "time": "13:00", "occupied": 75 },
+                        "14": { "time": "14:00", "occupied": 63 },
+                        "15": { "time": "15:00", "occupied": 53 },
+                        "16": { "time": "16:00", "occupied": 43 },
+                        "17": { "time": "17:00", "occupied": 35 }
+                      },
+                      "friday": {
+                        "07": { "time": "07:00", "occupied": 24 },
+                        "08": { "time": "08:00", "occupied": 44 },
+                        "09": { "time": "09:00", "occupied": 74 },
+                        "10": { "time": "10:00", "occupied": 84 },
+                        "11": { "time": "11:00", "occupied": 92 },
+                        "12": { "time": "12:00", "occupied": 88 },
+                        "13": { "time": "13:00", "occupied": 76 },
+                        "14": { "time": "14:00", "occupied": 64 },
+                        "15": { "time": "15:00", "occupied": 54 },
+                        "16": { "time": "16:00", "occupied": 44 },
+                        "17": { "time": "17:00", "occupied": 36 }
+                      }
+                    }
+                  },
+                  "KK": {
+                    "capacity": 200,
+                    "slots": {
+                      "monday": {
+                        "07": { "time": "07:00", "occupied": 80 },
+                        "08": { "time": "08:00", "occupied": 120 },
+                        "09": { "time": "09:00", "occupied": 160 },
+                        "10": { "time": "10:00", "occupied": 170 },
+                        "11": { "time": "11:00", "occupied": 180 },
+                        "12": { "time": "12:00", "occupied": 170 },
+                        "13": { "time": "13:00", "occupied": 150 },
+                        "14": { "time": "14:00", "occupied": 130 },
+                        "15": { "time": "15:00", "occupied": 110 },
+                        "16": { "time": "16:00", "occupied": 100 },
+                        "17": { "time": "17:00", "occupied": 95 }
+                      },
+                      "tuesday": {
+                        "07": { "time": "07:00", "occupied": 85 },
+                        "08": { "time": "08:00", "occupied": 125 },
+                        "09": { "time": "09:00", "occupied": 165 },
+                        "10": { "time": "10:00", "occupied": 172 },
+                        "11": { "time": "11:00", "occupied": 178 },
+                        "12": { "time": "12:00", "occupied": 168 },
+                        "13": { "time": "13:00", "occupied": 148 },
+                        "14": { "time": "14:00", "occupied": 128 },
+                        "15": { "time": "15:00", "occupied": 108 },
+                        "16": { "time": "16:00", "occupied": 98 },
+                        "17": { "time": "17:00", "occupied": 92 }
+                      },
+                      "wednesday": {
+                        "07": { "time": "07:00", "occupied": 82 },
+                        "08": { "time": "08:00", "occupied": 122 },
+                        "09": { "time": "09:00", "occupied": 162 },
+                        "10": { "time": "10:00", "occupied": 168 },
+                        "11": { "time": "11:00", "occupied": 176 },
+                        "12": { "time": "12:00", "occupied": 166 },
+                        "13": { "time": "13:00", "occupied": 146 },
+                        "14": { "time": "14:00", "occupied": 126 },
+                        "15": { "time": "15:00", "occupied": 106 },
+                        "16": { "time": "16:00", "occupied": 96 },
+                        "17": { "time": "17:00", "occupied": 90 }
+                      },
+                      "thursday": {
+                        "07": { "time": "07:00", "occupied": 86 },
+                        "08": { "time": "08:00", "occupied": 126 },
+                        "09": { "time": "09:00", "occupied": 166 },
+                        "10": { "time": "10:00", "occupied": 171 },
+                        "11": { "time": "11:00", "occupied": 179 },
+                        "12": { "time": "12:00", "occupied": 169 },
+                        "13": { "time": "13:00", "occupied": 149 },
+                        "14": { "time": "14:00", "occupied": 129 },
+                        "15": { "time": "15:00", "occupied": 109 },
+                        "16": { "time": "16:00", "occupied": 99 },
+                        "17": { "time": "17:00", "occupied": 93 }
+                      },
+                      "friday": {
+                        "07": { "time": "07:00", "occupied": 88 },
+                        "08": { "time": "08:00", "occupied": 128 },
+                        "09": { "time": "09:00", "occupied": 168 },
+                        "10": { "time": "10:00", "occupied": 173 },
+                        "11": { "time": "11:00", "occupied": 181 },
+                        "12": { "time": "12:00", "occupied": 171 },
+                        "13": { "time": "13:00", "occupied": 151 },
+                        "14": { "time": "14:00", "occupied": 131 },
+                        "15": { "time": "15:00", "occupied": 111 },
+                        "16": { "time": "16:00", "occupied": 101 },
+                        "17": { "time": "17:00", "occupied": 97 }
+                      }
+                    }
+                  },
+                  "GG": {
+                    "capacity": 300,
+                    "slots": {
+                      "monday": {
+                        "07": { "time": "07:00", "occupied": 150 },
+                        "08": { "time": "08:00", "occupied": 220 },
+                        "09": { "time": "09:00", "occupied": 260 },
+                        "10": { "time": "10:00", "occupied": 280 },
+                        "11": { "time": "11:00", "occupied": 290 },
+                        "12": { "time": "12:00", "occupied": 270 },
+                        "13": { "time": "13:00", "occupied": 250 },
+                        "14": { "time": "14:00", "occupied": 230 },
+                        "15": { "time": "15:00", "occupied": 200 },
+                        "16": { "time": "16:00", "occupied": 180 },
+                        "17": { "time": "17:00", "occupied": 160 }
+                      },
+                      "tuesday": {
+                        "07": { "time": "07:00", "occupied": 160 },
+                        "08": { "time": "08:00", "occupied": 230 },
+                        "09": { "time": "09:00", "occupied": 265 },
+                        "10": { "time": "10:00", "occupied": 285 },
+                        "11": { "time": "11:00", "occupied": 295 },
+                        "12": { "time": "12:00", "occupied": 275 },
+                        "13": { "time": "13:00", "occupied": 255 },
+                        "14": { "time": "14:00", "occupied": 235 },
+                        "15": { "time": "15:00", "occupied": 205 },
+                        "16": { "time": "16:00", "occupied": 185 },
+                        "17": { "time": "17:00", "occupied": 165 }
+                      },
+                      "wednesday": {
+                        "07": { "time": "07:00", "occupied": 155 },
+                        "08": { "time": "08:00", "occupied": 225 },
+                        "09": { "time": "09:00", "occupied": 262 },
+                        "10": { "time": "10:00", "occupied": 278 },
+                        "11": { "time": "11:00", "occupied": 288 },
+                        "12": { "time": "12:00", "occupied": 268 },
+                        "13": { "time": "13:00", "occupied": 248 },
+                        "14": { "time": "14:00", "occupied": 228 },
+                        "15": { "time": "15:00", "occupied": 198 },
+                        "16": { "time": "16:00", "occupied": 178 },
+                        "17": { "time": "17:00", "occupied": 158 }
+                      },
+                      "thursday": {
+                        "07": { "time": "07:00", "occupied": 152 },
+                        "08": { "time": "08:00", "occupied": 222 },
+                        "09": { "time": "09:00", "occupied": 261 },
+                        "10": { "time": "10:00", "occupied": 279 },
+                        "11": { "time": "11:00", "occupied": 289 },
+                        "12": { "time": "12:00", "occupied": 269 },
+                        "13": { "time": "13:00", "occupied": 249 },
+                        "14": { "time": "14:00", "occupied": 229 },
+                        "15": { "time": "15:00", "occupied": 199 },
+                        "16": { "time": "16:00", "occupied": 179 },
+                        "17": { "time": "17:00", "occupied": 159 }
+                      },
+                      "friday": {
+                        "07": { "time": "07:00", "occupied": 158 },
+                        "08": { "time": "08:00", "occupied": 228 },
+                        "09": { "time": "09:00", "occupied": 264 },
+                        "10": { "time": "10:00", "occupied": 282 },
+                        "11": { "time": "11:00", "occupied": 292 },
+                        "12": { "time": "12:00", "occupied": 272 },
+                        "13": { "time": "13:00", "occupied": 252 },
+                        "14": { "time": "14:00", "occupied": 232 },
+                        "15": { "time": "15:00", "occupied": 202 },
+                        "16": { "time": "16:00", "occupied": 182 },
+                        "17": { "time": "17:00", "occupied": 162 }
+                      }
+                    }
+                  }
+                }

@@ -1,0 +1,13 @@
+{
+  "name": "490-project-commuter-app",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "init-db": "node ./apps/api/models/init_db.js",
+    "test-helpers": "node ./apps/api/models/test_helpers.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}
