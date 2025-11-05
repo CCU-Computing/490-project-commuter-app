@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaflet Map Example</title>
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-sA+z0W4jI/JiQxqX3vXJ1P4Z1wT+kUlQ2zqFiHVsn57fDU8KXekK8kQH5rF3pDPIa5dKZOYvB0wBf8v6/9p3Vg==" 
+    crossorigin=""
+  />
+
+  <style>
+    /* The map must have a size or it will not appear */
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script 
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha512-mbKjFJ50N13cS0s8fXjRA7j6+yW1A8v+qHcK5TfWbTfG5dJNYy0M2ahJ6Sdnh9AYz9sFaJrzwPJ0VMSvJz5qFA==" 
+    crossorigin="">
+  </script>
+
+  <script>
+    // Initialize the map and set its view (latitude, longitude, zoom)
+    const map = L.map('map').setView([33.8360034, -79.0478143], 13); // San Francisco
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+  </script>
+</body>
+</html>

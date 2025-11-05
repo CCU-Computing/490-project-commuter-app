@@ -1,9 +1,19 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
+
+// NEW: Postgres client (optional)
+let Pool = null;
+try {
+  ({ Pool } = require('pg'));
+} catch (err) {
+  console.warn('[startup] "pg" module not installed; continuing without database support.');
+}
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -13,9 +23,91 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Resolve primary directories once
+const projectRoot = path.join(__dirname, '..');
+const apiDir = path.join(projectRoot, 'apps', 'api');
+const apiPublicDir = path.join(apiDir, 'src', 'public');
+const dataDir = path.join(projectRoot, 'data');
+const phpDocRoot = process.env.PHP_DOCROOT || path.join(apiDir, 'models');
+const phpHost = process.env.PHP_DEV_HOST || '127.0.0.1';
+const phpPort = Number(process.env.PHP_DEV_PORT) || 8081;
+const autoStartPhp = (process.env.START_PHP_FRONTEND ?? 'true').toLowerCase() !== 'false';
+
+console.log('[startup] __dirname:', __dirname);
+console.log('[startup] projectRoot:', projectRoot);
+console.log('[startup] apiDir:', apiDir);
+console.log('[startup] apiPublicDir:', apiPublicDir);
+console.log('[startup] phpDocRoot:', phpDocRoot);
+console.log('[startup] dataDir:', dataDir);
+
+let phpProcess = null;
+let autoPhpOrigin = null;
+
+function startPhpDevServer() {
+  if (!autoStartPhp) {
+    console.log('[startup] Automatic PHP dev server disabled via START_PHP_FRONTEND=false');
+    return;
+  }
+
+  if (!fs.existsSync(phpDocRoot)) {
+    console.warn('[startup] Cannot auto-start PHP server; doc root missing:', phpDocRoot);
+    return;
+  }
+
+  try {
+    console.log(`[startup] Launching built-in PHP server at http://${phpHost}:${phpPort} (doc root: ${phpDocRoot})`);
+    phpProcess = spawn('php', ['-S', `${phpHost}:${phpPort}`, '-t', phpDocRoot], {
+      stdio: ['ignore', 'inherit', 'inherit'],
+    });
+    autoPhpOrigin = `http://${phpHost}:${phpPort}`;
+
+    phpProcess.on('error', (err) => {
+      console.error('[startup] Failed to launch PHP dev server:', err.message);
+      autoPhpOrigin = null;
+    });
+
+    phpProcess.on('exit', (code, signal) => {
+      console.log(`[startup] PHP dev server exited (code=${code}, signal=${signal})`);
+      phpProcess = null;
+    });
+  } catch (err) {
+    console.error('[startup] Error spawning PHP dev server:', err);
+  }
+}
+
+startPhpDevServer();
+
+function shutdownPhpServer() {
+  if (phpProcess) {
+    console.log('[shutdown] Stopping PHP dev server...');
+    phpProcess.kill('SIGTERM');
+    phpProcess = null;
+  }
+}
+
+process.on('exit', shutdownPhpServer);
+process.on('SIGINT', () => {
+  shutdownPhpServer();
+  process.exit(0);
+});
+process.on('SIGTERM', () => {
+  shutdownPhpServer();
+  process.exit(0);
+});
+
 // --- PHP frontend redirect (non-breaking) ---
-const FRONTEND_PHP_ORIGIN = process.env.FRONTEND_PHP_ORIGIN; // e.g., "http://127.0.0.1:8081"
+const resolvedFrontendOrigin = (() => {
+  const raw = process.env.FRONTEND_PHP_ORIGIN;
+  if (raw) {
+    if (['none', 'disable', 'off'].includes(raw.toLowerCase())) return null;
+    return raw;
+  }
+  return autoPhpOrigin;
+})();
+const FRONTEND_PHP_ORIGIN = resolvedFrontendOrigin;
+
 if (FRONTEND_PHP_ORIGIN) {
+  console.log('[startup] PHP frontend proxy enabled ->', FRONTEND_PHP_ORIGIN);
   // Redirect root and any HTML navigations to the PHP server
   app.get('/', (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
   app.get(['/index.php','/index.html'], (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
@@ -27,24 +119,27 @@ if (FRONTEND_PHP_ORIGIN) {
   });
   // Optional: quiet favicon.ico when using PHP frontend
   app.get('/favicon.ico', (req, res) => res.status(204).end());
+} else {
+  console.log('[startup] PHP frontend proxy disabled; serving static fallback if available.');
 }
 // --- end PHP frontend block ---
 
-
-// Resolve paths once and log them
-const webDir = path.join(__dirname, '..', 'apps', 'web');
-const dataDir = path.join(__dirname, '..', 'data');
-const apiSrcDir = path.join(__dirname, '..', 'apps', 'api', 'src');
-
-console.log('[startup] __dirname:', __dirname);
-console.log('[startup] webDir:', webDir);
-console.log('[startup] dataDir:', dataDir);
-console.log('[startup] apiSrcDir:', apiSrcDir);
-
-// Validate index.html exists — fail early if not
-const indexPath = path.join(webDir, 'index.html');
-if (!fs.existsSync(indexPath)) {
-  console.error(`[startup] Missing index.html at: ${indexPath}`);
+// Optional static index fallback (when not proxied to PHP)
+let fallbackIndexPath = null;
+if (fs.existsSync(apiPublicDir)) {
+  const candidates = ['index.html', 'map.html'];
+  for (const filename of candidates) {
+    const candidatePath = path.join(apiPublicDir, filename);
+    if (fs.existsSync(candidatePath)) {
+      fallbackIndexPath = candidatePath;
+      break;
+    }
+  }
+  if (!fallbackIndexPath) {
+    console.warn('[startup] No fallback HTML (index.html/map.html) found in', apiPublicDir);
+  }
+} else {
+  console.warn('[startup] Public directory missing:', apiPublicDir);
 }
 
 // Health
@@ -52,21 +147,122 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString(), uptime: process.uptime() });
 });
 
-// Static
-app.use(express.static(webDir));
-app.use('/data', express.static(dataDir));
+/* ===========================
+   NEW: Postgres connection
+   =========================== */
+const hasDbConfig = Boolean(
+  process.env.DATABASE_URL ||
+  process.env.PGHOST ||
+  process.env.PGUSER ||
+  process.env.PGDATABASE
+);
 
-// Only expose this if you truly need client-accessible files from api/src
-app.use('/src', express.static(apiSrcDir));
-
-// SPA fallback (exclude /api, /data)
-app.get(/^\/(?!api|data).*/, (req, res, next) => {
-  res.sendFile(indexPath, (err) => {
-    if (err) next(err);
+let pool = null;
+if (hasDbConfig && Pool) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL || undefined,
+    ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false,
   });
+  pool.on('error', (err) => {
+    console.error('[postgres] Unexpected client error', err);
+  });
+} else {
+  console.warn('[startup] No Postgres configuration detected; falling back to static data.');
+}
+
+// Lazy-load fallback data file
+let cachedLots = null;
+async function loadLotsFromFile() {
+  if (cachedLots) return cachedLots;
+  const geojsonPath = path.join(dataDir, 'ParkingLots.geojson');
+  try {
+    const text = await fs.promises.readFile(geojsonPath, 'utf8');
+    const parsed = JSON.parse(text);
+    cachedLots = Array.isArray(parsed?.features)
+      ? parsed.features.map((feature, idx) => ({
+          id: feature?.properties?.id ?? idx + 1,
+          name: feature?.properties?.name ?? `Lot ${idx + 1}`,
+          capacity: feature?.properties?.capacity ?? null,
+          fill: feature?.properties?.fill ?? 0,
+          event: feature?.properties?.event ?? false,
+          geom: feature?.geometry ?? null,
+        })).filter(d => d.geom)
+      : [];
+  } catch (err) {
+    console.error('[fallback] Failed to read ParkingLots.geojson:', err.message);
+    cachedLots = [];
+  }
+  return cachedLots;
+}
+
+/* ===========================================================
+   NEW: API endpoints consumed by parkingStatus.js / Leaflet
+   - Assumes your DB defines:
+       get_parking_lots() -> json/jsonb (array of objects)
+       get_parking_lots_at(timestamptz) -> json/jsonb  (optional)
+   - Each object should include:
+       { id, name, capacity, fill, event, geom: GeoJSON }
+   =========================================================== */
+
+// Return the current lots as JSON array (already JSON from Postgres)
+app.get('/api/lots', async (req, res) => {
+  try {
+    if (pool) {
+      const { rows } = await pool.query('SELECT get_parking_lots() AS data;');
+      const payload = rows?.[0]?.data;
+      if (Array.isArray(payload)) return res.json(payload);
+      if (payload && payload.features) return res.json(payload.features);
+      if (payload) return res.json(payload);
+    }
+
+    const fallbackLots = await loadLotsFromFile();
+    return res.json(fallbackLots);
+  } catch (err) {
+    console.error('[api/lots] DB error:', err);
+    if (pool) {
+      return res.status(500).json({ error: 'DB failure' });
+    }
+    const fallbackLots = await loadLotsFromFile();
+    res.json(fallbackLots);
+  }
 });
 
+// Optional time-sliced endpoint: /api/lots_at?at=2025-10-31T12:00:00Z
+app.get('/api/lots_at', async (req, res) => {
+  try {
+    const at = req.query.at;
+    if (!at) return res.status(400).json({ error: 'Missing ?at=ISO8601 timestamp' });
+    if (!pool) return res.status(503).json({ error: 'Database not configured' });
+    const { rows } = await pool.query('SELECT get_parking_lots_at($1) AS data;', [at]);
+    const payload = rows?.[0]?.data;
+    if (!payload) return res.json([]);
+    res.json(payload);
+  } catch (err) {
+    console.error('[api/lots_at] DB error:', err);
+    res.status(500).json({ error: 'DB failure' });
+  }
+});
 
+// Static
+if (fs.existsSync(apiPublicDir)) {
+  app.use(express.static(apiPublicDir));
+} else {
+  console.warn('[startup] Static public directory unavailable; skipping express.static for app assets.');
+}
+
+if (fs.existsSync(dataDir)) {
+  app.use('/data', express.static(dataDir));
+} else {
+  console.warn('[startup] /data directory missing; /data routes disabled.');
+}
+
+if (fallbackIndexPath && !FRONTEND_PHP_ORIGIN) {
+  app.get(/^\/(?!api|data).*/, (req, res, next) => {
+    res.sendFile(fallbackIndexPath, (err) => {
+      if (err) next(err);
+    });
+  });
+}
 
 // Error visibility
 app.use((err, req, res, next) => {

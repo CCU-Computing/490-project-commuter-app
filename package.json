@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon --signal SIGTERM src/server.js"
+    "start": "node infrastructure/server.js",
+    "dev": "nodemon --signal SIGTERM infrastructure/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
