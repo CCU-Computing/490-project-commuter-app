@@ -1,0 +1,6 @@
+@import url("colorVariables.css");
+body
+{
+	background-color: var(--dark-teal);
+	color: var(--light-teal);
+}
