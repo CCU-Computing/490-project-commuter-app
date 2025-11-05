@@ -1,9 +1,18 @@
-// routes/parkingLots.js
+// routes/parkingLots.js (Merged Version)
 import express from 'express';
-import { pool } from '../db.js';
+import { pool, listParking, getBestParking } from '../db.js'; // Added listParking, getBestParking
 const router = express.Router();
 
-// GET /api/parking-lots
+// Helper to get day/hour from request query or default to current time
+function getCurrentDayAndHour(req) {
+  const now = new Date();
+  // Get day string (e.g., 'monday'). This is used for the slots table lookups.
+  const dayOfWeek = req.query.day || ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+  const hour = Number(req.query.hour) || now.getHours();
+  return { day: dayOfWeek.toLowerCase(), hour };
+}
+
+// GET /api/parking-lots (Your original: Real-time with fulfillment/geo data)
 router.get('/', async (req, res) => {
   const sql = `
     SELECT pl.id, pl.name, pl.geometry,
@@ -20,25 +29,37 @@ router.get('/', async (req, res) => {
   res.json(rows);
 });
 
-// GET /api/parking-lots/best
+// GET /api/parking-lots/best (UPDATED: Uses predicted occupancy from 'slots' table)
+// Accepts optional query params: ?day=monday&hour=9
 router.get('/best', async (req, res) => {
-  const sql = `
-    SELECT pl.id, pl.name, f.fulfillment
-    FROM parking_lots pl
-    JOIN (
-      SELECT DISTINCT ON (parking_lot_id) *
-      FROM parking_lot_fulfillment
-      ORDER BY parking_lot_id, timestamp DESC
-    ) f ON pl.id = f.parking_lot_id
-    WHERE f.special_event = FALSE
-    ORDER BY f.fulfillment ASC
-    LIMIT 1;
-  `;
-  const { rows } = await pool.query(sql);
-  res.json(rows[0] || {});
+  const { day, hour } = getCurrentDayAndHour(req);
+  try {
+    const bestLot = await getBestParking(day, hour);
+    if (bestLot) {
+      res.json(bestLot);
+    } else {
+      res.json({});
+    }
+  } catch (e) {
+    console.error('Error getting best parking lot:', e);
+    res.status(500).send({ error: "Failed to retrieve predicted best parking lot." });
+  }
 });
 
-// GET /api/parking-lots/geojson
+// GET /api/parking-lots/historical (NEW ROUTE: Shows all predicted slots)
+// Accepts optional query params: ?day=monday&hour=9
+router.get('/historical', async (req, res) => {
+  const { day, hour } = getCurrentDayAndHour(req);
+  try {
+    const list = await listParking(day, hour);
+    res.json(list);
+  } catch (e) {
+    console.error('Error getting historical parking list:', e);
+    res.status(500).send({ error: "Failed to retrieve historical parking data." });
+  }
+});
+
+// GET /api/parking-lots/geojson (Your original: GeoJSON data)
 router.get('/geojson', async (req, res) => {
   const sql = `
     SELECT pl.id, pl.name, pl.geometry,

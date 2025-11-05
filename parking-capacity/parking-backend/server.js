@@ -10,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Your original routes remain the same
 app.use('/api/parking-lots', parkingLotsRouter);
 app.use('/api/fulfillment', fulfillmentRouter);
 

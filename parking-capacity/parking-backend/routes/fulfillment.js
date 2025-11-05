@@ -1,4 +1,4 @@
-// routes/fulfillment.js
+// routes/fulfillment.js (Unchanged)
 import express from 'express';
 import { pool } from '../db.js';
 const router = express.Router();
@@ -12,7 +12,8 @@ router.post('/', async (req, res) => {
   const { parking_lot_id, fulfillment, special_event = false } = req.body;
   const { rows } = await pool.query(
     `INSERT INTO parking_lot_fulfillment (parking_lot_id, fulfillment, special_event)
-     VALUES ($1,$2,$3) RETURNING *`, [parking_lot_id, fulfillment, special_event]
+     VALUES ($1,$2,$3) RETURNING *`,
+    [parking_lot_id, fulfillment, special_event]
   );
   res.status(201).json(rows[0]);
 });
