@@ -9,9 +9,9 @@
 	$extensionLoc = strpos($currentFile, ".");
 	$pageName = substr($currentFile, 0, $extensionLoc);
 	
-	session_start();
-	header('Content-Type: application/json');
-	echo json_encode(['mode' => $_SESSION['mode']);
+	// session_start();
+	// header('Content-Type: application/json');
+	// echo json_encode(['mode' => $_SESSION['mode']]);
 ?>
 <!DOCTYPE html lang="en-us">
 <html>
@@ -53,3 +53,4 @@
 			</nav>
 			<hr>
 		</header>
+
