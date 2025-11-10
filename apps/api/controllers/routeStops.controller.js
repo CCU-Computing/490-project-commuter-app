@@ -1,21 +1,21 @@
 import { pool } from "../db.js";
 
-/** add or replace a stop position in a route */
+/** PUT /routes/:routeId/stops — add/replace stop with sequence */
 export async function upsertRouteStop(req, res, next) {
   try {
     const { routeId } = req.params;
-    const { stop_id, seq, dwell_s, distance_m } = req.body;
+    const { stop_id, seq } = req.body;
     if (!stop_id || typeof seq !== "number")
       return res.status(400).json({ error: "stop_id_and_seq_required" });
 
     const q = `
-      INSERT INTO transit.route_stops(route_id, stop_id, seq, dwell_s, distance_m)
-      VALUES ($1,$2,$3,$4,$5)
+      INSERT INTO transit.route_stops(route_id, stop_id, seq)
+      VALUES ($1,$2,$3)
       ON CONFLICT (route_id, stop_id)
-      DO UPDATE SET seq=EXCLUDED.seq, dwell_s=EXCLUDED.dwell_s, distance_m=EXCLUDED.distance_m
+      DO UPDATE SET seq = EXCLUDED.seq
       RETURNING route_id, stop_id, seq;
     `;
-    const { rows } = await pool.query(q, [routeId, stop_id, seq, dwell_s ?? null, distance_m ?? null]);
+    const { rows } = await pool.query(q, [routeId, stop_id, seq]);
     res.status(201).json(rows[0]);
   } catch (e) { next(e); }
 }

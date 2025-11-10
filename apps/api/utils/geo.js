@@ -1,16 +1,21 @@
 // utils/geo.js
-export function geomSqlAndParams(input, startIndex = 1) {
-  if (input?.geojson) {
+// Build a parameterized SQL snippet for either GeoJSON or WKT input.
+// Usage: const g = geomSqlAndParams({ geojson, wkt }, indexStart);
+// Then use: ... VALUES (..., ${g.sql}) with params [..., ...g.params]
+export function geomSqlAndParams({ geojson, wkt }, indexStart = 1) {
+  if (geojson) {
+    // Accept JS object or string; store as SRID 4326
+    const payload = typeof geojson === "string" ? geojson : JSON.stringify(geojson);
     return {
-      sql: `ST_SetSRID(ST_GeomFromGeoJSON($${startIndex}), 4326)`,
-      params: [JSON.stringify(input.geojson)],
+      sql: `ST_SetSRID(ST_GeomFromGeoJSON($${indexStart}), 4326)`,
+      params: [payload],
     };
   }
-  if (typeof input?.wkt === "string") {
+  if (wkt) {
     return {
-      sql: `ST_SetSRID(ST_GeomFromText($${startIndex}), 4326)`,
-      params: [input.wkt],
+      sql: `ST_SetSRID(ST_GeomFromText($${indexStart}), 4326)`,
+      params: [wkt],
     };
   }
-  throw new Error("Geometry required: provide `geojson` or `wkt`");
+  throw new Error("geometry_or_wkt_required");
 }

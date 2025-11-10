@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import routesRouter from "./routes/routes.router.js";
 import stopsRouter from "./routes/stops.router.js";
+import parkingLotsRouter from "./routes/parkingLots.router.js";
+import fulfillmentRouter from "./routes/fulfillment.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +25,8 @@ app.get("/health", (_, res) => res.json({ ok: true }));
 
 app.use("/routes", routesRouter);
 app.use("/stops", stopsRouter);
+app.use("/parking-lots", parkingLotsRouter);
+app.use("/fulfillment", fulfillmentRouter);
 
 // error handler
 app.use((err, req, res, next) => {

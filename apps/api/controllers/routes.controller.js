@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 import { geomSqlAndParams } from "../utils/geo.js";
 
-export async function listRoutes(req, res, next) {
+export async function listRoutes(_req, res, next) {
   try {
     const q = `
       SELECT jsonb_build_object(
@@ -12,10 +12,10 @@ export async function listRoutes(req, res, next) {
             'id', route_id,
             'geometry', ST_AsGeoJSON(geom)::jsonb,
             'properties', to_jsonb(r) - 'geom'
-          )
+          ) ORDER BY name
         ), '[]'::jsonb)
       ) AS fc
-      FROM (SELECT * FROM transit.routes ORDER BY name) r;
+      FROM transit.routes r;
     `;
     const { rows } = await pool.query(q);
     res.json(rows[0].fc);
@@ -32,8 +32,7 @@ export async function getRoute(req, res, next) {
         'geometry', ST_AsGeoJSON(geom)::jsonb,
         'properties', to_jsonb(r) - 'geom'
       ) AS f
-      FROM transit.routes r
-      WHERE route_id = $1;
+      FROM transit.routes r WHERE route_id = $1;
     `;
     const { rows } = await pool.query(q, [id]);
     if (!rows[0]) return res.status(404).json({ error: "not_found" });
@@ -41,14 +40,41 @@ export async function getRoute(req, res, next) {
   } catch (e) { next(e); }
 }
 
-
 export async function createRoute(req, res, next) {
   try {
-    const { name, code, color_hex, geometry, wkt } = req.body;
-    const safeName = (name ?? "").trim() || `Route ${new Date().toISOString().slice(11,19)}`;
+    const { name, code, color_hex, geometry, wkt, coords } = req.body;
 
+    // Accept a few shapes: GeoJSON, WKT, or a coords helper (array of [lon,lat] points)
+    let finalGeometry = geometry;
+    let finalWkt = wkt;
+
+    if (!finalGeometry && !finalWkt && Array.isArray(coords) && coords.length >= 2) {
+      // Build a simple MULTILINESTRING from coords helper
+      // coords: [ [lon,lat], [lon,lat], ... ]
+      const seg = coords.map(([x, y]) => `${x} ${y}`).join(", ");
+      finalWkt = `MULTILINESTRING((${seg}))`;
+    }
+
+    if (!finalGeometry && !finalWkt) {
+      return res.status(400).json({
+        error: "geometry_required",
+        message:
+          "Provide GeoJSON in `geometry`, WKT in `wkt`, or a coords array like [[lon,lat],[lon,lat]].",
+        examples: {
+          geojson: { type: "MultiLineString", coordinates: [[[-79, 33.7], [-78.95, 33.71]]] },
+          wkt: "MULTILINESTRING((-79 33.7, -78.95 33.71))",
+          coords: [[-79, 33.7], [-78.95, 33.71]]
+        }
+      });
+    }
+
+    const safeName = (name ?? "").trim() || `Route ${new Date().toISOString().slice(11,19)}`;
     const baseParams = [safeName, code ?? null, color_hex ?? null];
-    const g = geomSqlAndParams({ geojson: geometry, wkt }, baseParams.length + 1);
+
+    const g = geomSqlAndParams(
+      { geojson: finalGeometry, wkt: finalWkt },
+      baseParams.length + 1
+    );
 
     const q = `
       INSERT INTO transit.routes (name, code, color_hex, geom)
@@ -57,7 +83,17 @@ export async function createRoute(req, res, next) {
     `;
     const { rows } = await pool.query(q, [...baseParams, ...g.params]);
     res.status(201).json({ route_id: rows[0].route_id });
-  } catch (e) { next(e); }
+  } catch (e) {
+    // Turn our util error into a 400
+    if (String(e.message).includes("geometry_or_wkt_required")) {
+      return res.status(400).json({
+        error: "geometry_required",
+        message:
+          "Provide GeoJSON in `geometry`, WKT in `wkt`, or a coords array like [[lon,lat],[lon,lat]]."
+      });
+    }
+    next(e);
+  }
 }
 
 
@@ -74,10 +110,10 @@ export async function updateRoute(req, res, next) {
     if (code !== undefined) { parts.push(`code = $${i++}`); params.push(code); }
     if (color_hex !== undefined) { parts.push(`color_hex = $${i++}`); params.push(color_hex); }
     if (geometry || wkt) {
-  const g = geomSqlAndParams({ geojson: geometry, wkt }, params.length + 1);
-  parts.push(`geom = ${g.sql}`);
-  params.push(...g.params);
-}
+      const g = geomSqlAndParams({ geojson: geometry, wkt }, params.length + 1);
+      parts.push(`geom = ${g.sql}`);
+      params.push(...g.params);
+    }
     if (!parts.length) return res.status(400).json({ error: "no_fields" });
 
     const q = `UPDATE transit.routes SET ${parts.join(", ")} WHERE route_id = $${i} RETURNING route_id;`;

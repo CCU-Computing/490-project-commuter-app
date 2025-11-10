@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 import { geomSqlAndParams } from "../utils/geo.js";
 
-export async function listStops(req, res, next) {
+export async function listStops(_req, res, next) {
   try {
     const q = `
       SELECT jsonb_build_object(
@@ -12,10 +12,10 @@ export async function listStops(req, res, next) {
             'id', stop_id,
             'geometry', ST_AsGeoJSON(geom)::jsonb,
             'properties', to_jsonb(s) - 'geom' - 'geom_3857'
-          )
+          ) ORDER BY name
         ), '[]'::jsonb)
       ) AS fc
-      FROM (SELECT * FROM transit.stops ORDER BY name) s;
+      FROM transit.stops s;
     `;
     const { rows } = await pool.query(q);
     res.json(rows[0].fc);
@@ -40,7 +40,6 @@ export async function getStop(req, res, next) {
   } catch (e) { next(e); }
 }
 
-
 export async function createStop(req, res, next) {
   try {
     const { name, code, direction, accessible, shelter, geometry, wkt } = req.body;
@@ -59,7 +58,6 @@ export async function createStop(req, res, next) {
   } catch (e) { next(e); }
 }
 
-
 export async function updateStop(req, res, next) {
   try {
     const { id } = req.params;
@@ -74,11 +72,11 @@ export async function updateStop(req, res, next) {
     if (direction !== undefined) { parts.push(`direction = $${i++}`); params.push(direction); }
     if (accessible !== undefined) { parts.push(`accessible = $${i++}`); params.push(!!accessible); }
     if (shelter !== undefined) { parts.push(`shelter = $${i++}`); params.push(!!shelter); }
-if (geometry || wkt) {
-  const g = geomSqlAndParams({ geojson: geometry, wkt }, params.length + 1);
-  parts.push(`geom = ${g.sql}`);
-  params.push(...g.params);
-}
+    if (geometry || wkt) {
+      const g = geomSqlAndParams({ geojson: geometry, wkt }, params.length + 1);
+      parts.push(`geom = ${g.sql}`);
+      params.push(...g.params);
+    }
     if (!parts.length) return res.status(400).json({ error: "no_fields" });
 
     const q = `UPDATE transit.stops SET ${parts.join(", ")} WHERE stop_id = $${i} RETURNING stop_id;`;
