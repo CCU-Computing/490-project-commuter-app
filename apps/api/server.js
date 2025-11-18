@@ -15,7 +15,7 @@ const webRoot = path.resolve(__dirname, "../web"); // apps/web
 
 // serve /web/*
 app.use("/web", express.static(webRoot));
-
+app.use(cors({ origin: 'http://localhost:8000' }));
 // optional: redirect / -> /web/
 app.get("/", (_req, res) => res.redirect("/web/"));
 app.use(cors());

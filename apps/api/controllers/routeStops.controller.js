@@ -1,6 +1,5 @@
 import { pool } from "../db.js";
 
-/** PUT /routes/:routeId/stops — add/replace stop with sequence */
 export async function upsertRouteStop(req, res, next) {
   try {
     const { routeId } = req.params;

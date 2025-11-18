@@ -1,4 +1,3 @@
-// routes/fulfillment.router.js
 import express from "express";
 import {
   listFulfillment,

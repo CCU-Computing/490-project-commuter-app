@@ -1,5 +1,6 @@
-<select name="lots" id="lots">
-	<option value="a">A Parking (circle by Wall Building)</option>
+<select name="lot" id="lot">
+	<option>Select a parking lot</option>
+	<option value="a">A Parking (Wall Building)</option>
 	<option value="aa">AA Parking (HTC Center)</option>
 	<option value="b" class="fac_staff">B Parking (Penny Hall)</option>
 	<option value="bb">BB Parking (Woods Residence Halls)</option>
@@ -39,3 +40,30 @@
 	<option value="ww">WW Parking (Sands Hall)</option>
 	<option value="yy">YY Parking (close to University Place)</option>
 </select>
+<?php
+	if ($currentFile == "parking.php")
+	{
+?>
+<br><select name="loc" id="loc">
+	<option>Select a location to visit</option>
+	<option value="baxley">Baxley Hall (BAXL)</option>
+	<option value="brittain">Brittain Hall (BRTH)</option>
+	<option value="little_chant">Chanticleer Hall (little)</option>
+	<option value="big_chant">Chanticleer Hall (big)</option>
+	<option value="chauncey">Chauncey's Choice</option>
+	<option value="decenzo">DeCenzo Hall</option>
+	<option value="edwards">Edwards Building (EHFA)</option>
+	<option value="hicks">Hicks Dining Hall</option>
+	<option value="kearns">Kearns Hall (KRNS)</option>
+	<option value="kingston">Kingston Hall</option>
+	<option value="ljsu">Lib Jackson Student Union (LJSU)</option>
+	<option value="penny">Penny Hall</option>
+	<option value="prince">Prince Building (PRIN)</option>
+	<option value="thomp">Thompson Library (TLIB)</option>
+	<option value="tradition">Tradition Hall</option>
+	<option value="wall">Wall College of Business</option>
+	<option value="wheel">Wheelwright Auditorium (WHEL)</option>
+</select>
+<?php 
+	} // End of the parking.php check
+?>

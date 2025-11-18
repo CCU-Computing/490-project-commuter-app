@@ -1,20 +1,25 @@
+// apps/api/routes/parkingLots.router.js
 import express from "express";
 import {
   listParkingLots,
   bestParkingLot,
   historicalParking,
+  importParkingLotsGeoJSON,
   parkingLotsGeoJSON,
-  importParkingLotsGeoJSON,   // <-- add
 } from "../controllers/parkingLots.controller.js";
 
 const router = express.Router();
 
-router.get("/", listParkingLots);
+// ✅ This matches parking.php: GET /parking-lots/geojson
+// Uses lots.geojson on disk (NOT DB geom)
+router.get("/geojson", listParkingLots);
+
+// Optional DB-based variant, if you ever want it
+router.get("/db-geojson", parkingLotsGeoJSON);
+
+// Other endpoints
 router.get("/best", bestParkingLot);
 router.get("/historical", historicalParking);
-router.get("/geojson", parkingLotsGeoJSON);
-
-// NEW: import lots polygons
-router.post("/import-geojson", importParkingLotsGeoJSON);
+router.post("/import", importParkingLotsGeoJSON);
 
 export default router;
