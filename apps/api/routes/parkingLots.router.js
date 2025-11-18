@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-// ✅ This matches parking.php: GET /parking-lots/geojson
+
 // Uses lots.geojson on disk (NOT DB geom)
 router.get("/geojson", listParkingLots);
 
