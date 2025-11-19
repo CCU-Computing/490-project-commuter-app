@@ -88,7 +88,7 @@
                   "pm.test(`POST /stops name=${stopName} code=${stopCode} -> 201`, function () { pm.response.to.have.status(201); });",
                   "var body = pm.response.json();",
                   "pm.expect(body.stop_id, 'stop_id returned from POST /stops').to.be.a('number');",
-                  "pm.environment.set('stopId', body.stop_id);"
+                  "pm.environment.set('stop_id', body.stop_id);"
                 ]
               }
             }
@@ -116,9 +116,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/stops/{{stopId}}",
+              "raw": "{{baseUrl}}/stops/{{stop_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["stops", "{{stopId}}"]
+              "path": ["stops", "{{stop_id}}"]
             }
           },
           "event": [
@@ -126,10 +126,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const stopId = pm.environment.get('stopId');",
-                  "pm.test(`GET /stops/${stopId} -> 200`, function () { pm.response.to.have.status(200); });",
+                  "const stop_id = pm.environment.get('stop_id');",
+                  "pm.test(`GET /stops/${stop_id} -> 200`, function () { pm.response.to.have.status(200); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.id, 'response id matches stopId env').to.eql(Number(stopId));",
+                  "pm.expect(body.id, 'response id matches stop_id env').to.eql(Number(stop_id));",
                   "pm.expect(body.geometry.type, 'stop geometry type').to.eql('Point');"
                 ]
               }
@@ -149,9 +149,9 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{baseUrl}}/stops/{{stopId}}",
+              "raw": "{{baseUrl}}/stops/{{stop_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["stops", "{{stopId}}"]
+              "path": ["stops", "{{stop_id}}"]
             }
           },
           "event": [
@@ -159,10 +159,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const stopId = pm.environment.get('stopId');",
-                  "pm.test(`PATCH /stops/${stopId} -> 200`, function () { pm.response.to.have.status(200); });",
+                  "const stop_id = pm.environment.get('stop_id');",
+                  "pm.test(`PATCH /stops/${stop_id} -> 200`, function () { pm.response.to.have.status(200); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.stop_id, 'updated stop_id matches requested stop').to.eql(Number(stopId));"
+                  "pm.expect(body.stop_id, 'updated stop_id matches requested stop').to.eql(Number(stop_id));"
                 ]
               }
             }
@@ -223,7 +223,7 @@
                   "pm.test(`POST /routes name=${routeName} code=${routeCode} -> 201`, function () { pm.response.to.have.status(201); });",
                   "var body = pm.response.json();",
                   "pm.expect(body.route_id, 'route_id returned from POST /routes').to.be.a('number');",
-                  "pm.environment.set('routeId', body.route_id);"
+                  "pm.environment.set('route_id', body.route_id);"
                 ]
               }
             }
@@ -251,9 +251,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}",
+              "raw": "{{baseUrl}}/routes/{{route_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}"]
+              "path": ["routes", "{{route_id}}"]
             }
           },
           "event": [
@@ -261,10 +261,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "pm.test(`GET /routes/${routeId} -> 200`, function () { pm.response.to.have.status(200); });",
+                  "const route_id = pm.environment.get('route_id');",
+                  "pm.test(`GET /routes/${route_id} -> 200`, function () { pm.response.to.have.status(200); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.id, 'route id matches environment').to.eql(Number(routeId));",
+                  "pm.expect(body.id, 'route id matches environment').to.eql(Number(route_id));",
                   "pm.expect(body.geometry.type, 'route geometry type').to.eql('MultiLineString');"
                 ]
               }
@@ -284,9 +284,9 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}",
+              "raw": "{{baseUrl}}/routes/{{route_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}"]
+              "path": ["routes", "{{route_id}}"]
             }
           },
           "event": [
@@ -294,10 +294,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "pm.test(`PATCH /routes/${routeId} -> 200`, function () { pm.response.to.have.status(200); });",
+                  "const route_id = pm.environment.get('route_id');",
+                  "pm.test(`PATCH /routes/${route_id} -> 200`, function () { pm.response.to.have.status(200); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.route_id, 'updated route_id matches requested route').to.eql(Number(routeId));"
+                  "pm.expect(body.route_id, 'updated route_id matches requested route').to.eql(Number(route_id));"
                 ]
               }
             }
@@ -314,9 +314,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}/stops",
+              "raw": "{{baseUrl}}/routes/{{route_id}}/stops",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}", "stops"]
+              "path": ["routes", "{{route_id}}", "stops"]
             }
           },
           "event": [
@@ -324,8 +324,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "pm.test(`GET /routes/${routeId}/stops initially empty`, function () {",
+                  "const route_id = pm.environment.get('route_id');",
+                  "pm.test(`GET /routes/${route_id}/stops initially empty`, function () {",
                   "  pm.response.to.have.status(200);",
                   "  var body = pm.response.json();",
                   "  pm.expect(body.type, 'route stops GeoJSON type').to.eql('FeatureCollection');",
@@ -346,13 +346,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"stop_id\": {{stopId}},\n  \"seq\": 1\n}",
+              "raw": "{\n  \"stop_id\": {{stop_id}},\n  \"seq\": 1\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}/stops",
+              "raw": "{{baseUrl}}/routes/{{route_id}}/stops",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}", "stops"]
+              "path": ["routes", "{{route_id}}", "stops"]
             }
           },
           "event": [
@@ -360,12 +360,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "const stopId = pm.environment.get('stopId');",
-                  "pm.test(`PUT /routes/${routeId}/stops stop_id=${stopId} seq=1 -> 201`, function () { pm.response.to.have.status(201); });",
+                  "const route_id = pm.environment.get('route_id');",
+                  "const stop_id = pm.environment.get('stop_id');",
+                  "pm.test(`PUT /routes/${route_id}/stops stop_id=${stop_id} seq=1 -> 201`, function () { pm.response.to.have.status(201); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.route_id, 'route_id echoed from upsert').to.eql(Number(routeId));",
-                  "pm.expect(body.stop_id, 'stop_id echoed from upsert').to.eql(Number(stopId));",
+                  "pm.expect(body.route_id, 'route_id echoed from upsert').to.eql(Number(route_id));",
+                  "pm.expect(body.stop_id, 'stop_id echoed from upsert').to.eql(Number(stop_id));",
                   "pm.expect(body.seq, 'sequence number set to 1').to.eql(1);"
                 ]
               }
@@ -378,9 +378,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}/stops",
+              "raw": "{{baseUrl}}/routes/{{route_id}}/stops",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}", "stops"]
+              "path": ["routes", "{{route_id}}", "stops"]
             }
           },
           "event": [
@@ -388,13 +388,13 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "const stopId = Number(pm.environment.get('stopId'));",
-                  "pm.test(`GET /routes/${routeId}/stops includes stop ${stopId}`, function () {",
+                  "const route_id = pm.environment.get('route_id');",
+                  "const stop_id = Number(pm.environment.get('stop_id'));",
+                  "pm.test(`GET /routes/${route_id}/stops includes stop ${stop_id}`, function () {",
                   "  pm.response.to.have.status(200);",
                   "  var body = pm.response.json();",
                   "  var ids = (body.features || []).map(function (f) { return f.id; });",
-                  "  pm.expect(ids, 'route stops includes linked stop').to.include(stopId);",
+                  "  pm.expect(ids, 'route stops includes linked stop').to.include(stop_id);",
                   "});"
                 ]
               }
@@ -407,9 +407,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}/stops/{{stopId}}",
+              "raw": "{{baseUrl}}/routes/{{route_id}}/stops/{{stop_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}", "stops", "{{stopId}}"]
+              "path": ["routes", "{{route_id}}", "stops", "{{stop_id}}"]
             }
           },
           "event": [
@@ -417,9 +417,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "const stopId = pm.environment.get('stopId');",
-                  "pm.test(`DELETE /routes/${routeId}/stops/${stopId} -> 204`, function () { pm.response.to.have.status(204); });"
+                  "const route_id = pm.environment.get('route_id');",
+                  "const stop_id = pm.environment.get('stop_id');",
+                  "pm.test(`DELETE /routes/${route_id}/stops/${stop_id} -> 204`, function () { pm.response.to.have.status(204); });"
                 ]
               }
             }
@@ -432,9 +432,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}/stops",
+              "raw": "{{baseUrl}}/routes/{{route_id}}/stops",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}", "stops"]
+              "path": ["routes", "{{route_id}}", "stops"]
             }
           },
           "event": [
@@ -442,8 +442,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "pm.test(`GET /routes/${routeId}/stops empty after delete`, function () {",
+                  "const route_id = pm.environment.get('route_id');",
+                  "pm.test(`GET /routes/${route_id}/stops empty after delete`, function () {",
                   "  pm.response.to.have.status(200);",
                   "  var body = pm.response.json();",
                   "  pm.expect(body.features.length, 'route stops length after deletion').to.eql(0);",
@@ -642,7 +642,7 @@
                   "pm.test(`POST /fulfillment lot_code=${lotCode} occupied_count=42 -> 201`, function () { pm.response.to.have.status(201); });",
                   "var body = pm.response.json();",
                   "pm.expect(body.id, 'fulfillment insert id').to.be.a('number');",
-                  "pm.environment.set('fulfillmentId', body.id);"
+                  "pm.environment.set('fulfillment_id', body.id);"
                 ]
               }
             }
@@ -680,12 +680,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const fulfillmentId = Number(pm.environment.get('fulfillmentId'));",
-                  "pm.test(`GET /fulfillment contains id ${fulfillmentId}`, function () {",
+                  "const fulfillment_id = Number(pm.environment.get('fulfillment_id'));",
+                  "pm.test(`GET /fulfillment contains id ${fulfillment_id}`, function () {",
                   "  pm.response.to.have.status(200);",
                   "  var body = pm.response.json();",
                   "  pm.expect(Array.isArray(body), 'fulfillment list is array').to.eql(true);",
-                  "  var found = body.some(function (row) { return Number(row.usage_id) === fulfillmentId; });",
+                  "  var found = body.some(function (row) { return Number(row.usage_id) === fulfillment_id; });",
                   "  pm.expect(found, 'list includes created fulfillment id').to.eql(true);",
                   "});"
                 ]
@@ -706,9 +706,9 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{baseUrl}}/fulfillment/{{fulfillmentId}}",
+              "raw": "{{baseUrl}}/fulfillment/{{fulfillment_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["fulfillment", "{{fulfillmentId}}"]
+              "path": ["fulfillment", "{{fulfillment_id}}"]
             }
           },
           "event": [
@@ -716,10 +716,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const fulfillmentId = pm.environment.get('fulfillmentId');",
-                  "pm.test(`PUT /fulfillment/${fulfillmentId} -> 200`, function () { pm.response.to.have.status(200); });",
+                  "const fulfillment_id = pm.environment.get('fulfillment_id');",
+                  "pm.test(`PUT /fulfillment/${fulfillment_id} -> 200`, function () { pm.response.to.have.status(200); });",
                   "var body = pm.response.json();",
-                  "pm.expect(body.id, 'updated fulfillment id matches').to.eql(Number(fulfillmentId));",
+                  "pm.expect(body.id, 'updated fulfillment id matches').to.eql(Number(fulfillment_id));",
                   "pm.expect(body.fulfillment, 'fulfillment updated to 55').to.eql(55);",
                   "pm.expect(body.special_event, 'special_event toggled true').to.eql(true);"
                 ]
@@ -733,9 +733,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/fulfillment/{{fulfillmentId}}",
+              "raw": "{{baseUrl}}/fulfillment/{{fulfillment_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["fulfillment", "{{fulfillmentId}}"]
+              "path": ["fulfillment", "{{fulfillment_id}}"]
             }
           },
           "event": [
@@ -743,10 +743,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const fulfillmentId = pm.environment.get('fulfillmentId');",
-                  "pm.test(`DELETE /fulfillment/${fulfillmentId} -> 204`, function () { pm.response.to.have.status(204); });",
-                  "pm.environment.set('deletedFulfillmentId', fulfillmentId);",
-                  "pm.environment.set('fulfillmentId', '');"
+                  "const fulfillment_id = pm.environment.get('fulfillment_id');",
+                  "pm.test(`DELETE /fulfillment/${fulfillment_id} -> 204`, function () { pm.response.to.have.status(204); });",
+                  "pm.environment.set('deleted_fulfillment_id', fulfillment_id);",
+                  "pm.environment.set('fulfillment_id', '');"
                 ]
               }
             }
@@ -774,11 +774,11 @@
                   "  pm.expect(Array.isArray(body), 'fulfillment response array').to.eql(true);",
                   "});",
                   "var body = pm.response.json();",
-                  "const deletedId = pm.environment.get('deletedFulfillmentId');",
+                  "const deletedId = pm.environment.get('deleted_fulfillment_id');",
                   "if (deletedId) {",
                   "  const found = body.some(function(row) { return Number(row.usage_id) === Number(deletedId); });",
                   "  pm.expect(found, 'deleted fulfillment id should not be listed').to.eql(false);",
-                  "  pm.environment.set('deletedFulfillmentId', '');",
+                  "  pm.environment.set('deleted_fulfillment_id', '');",
                   "}"
                 ]
               }
@@ -797,7 +797,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "if (!pm.environment.get('routeId')) { throw new Error('routeId missing'); }"
+                  "if (!pm.environment.get('route_id')) { throw new Error('route_id missing'); }"
                 ]
               }
             },
@@ -805,9 +805,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const routeId = pm.environment.get('routeId');",
-                  "pm.test(`DELETE /routes/${routeId} -> 204`, function () { pm.response.to.have.status(204); });",
-                  "pm.environment.set('routeId', '');"
+                  "const route_id = pm.environment.get('route_id');",
+                  "pm.test(`DELETE /routes/${route_id} -> 204`, function () { pm.response.to.have.status(204); });",
+                  "pm.environment.set('route_id', '');"
                 ]
               }
             }
@@ -816,9 +816,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/routes/{{routeId}}",
+              "raw": "{{baseUrl}}/routes/{{route_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["routes", "{{routeId}}"]
+              "path": ["routes", "{{route_id}}"]
             }
           }
         },
@@ -829,7 +829,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "if (!pm.environment.get('stopId')) { throw new Error('stopId missing'); }"
+                  "if (!pm.environment.get('stop_id')) { throw new Error('stop_id missing'); }"
                 ]
               }
             },
@@ -837,9 +837,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const stopId = pm.environment.get('stopId');",
-                  "pm.test(`DELETE /stops/${stopId} -> 204`, function () { pm.response.to.have.status(204); });",
-                  "pm.environment.set('stopId', '');"
+                  "const stop_id = pm.environment.get('stop_id');",
+                  "pm.test(`DELETE /stops/${stop_id} -> 204`, function () { pm.response.to.have.status(204); });",
+                  "pm.environment.set('stop_id', '');"
                 ]
               }
             }
@@ -848,9 +848,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/stops/{{stopId}}",
+              "raw": "{{baseUrl}}/stops/{{stop_id}}",
               "host": ["{{baseUrl}}"],
-              "path": ["stops", "{{stopId}}"]
+              "path": ["stops", "{{stop_id}}"]
             }
           }
         }

@@ -3,9 +3,9 @@
   "name": "Commuter App Local",
   "values": [
     { "key": "baseUrl", "value": "http://localhost:3000", "enabled": true },
-    { "key": "routeId", "value": "", "enabled": true },
-    { "key": "stopId", "value": "", "enabled": true },
-    { "key": "fulfillmentId", "value": "", "enabled": true },
+    { "key": "route_id", "value": "", "enabled": true },
+    { "key": "stop_id", "value": "", "enabled": true },
+    { "key": "fulfillment_id", "value": "", "enabled": true },
     { "key": "lotCode", "value": "", "enabled": true }
   ],
   "_postman_variable_scope": "environment",
