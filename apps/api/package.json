@@ -4,12 +4,14 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --watch . server.js"
+    "dev": "nodemon --watch . server.js",
+    "postman:test": "newman run ../../tests/postman/commuter-api.postman_collection.json -e ../../tests/postman/local.postman_environment.json -r cli,html --reporter-html-export reports/postman-report.html"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "newman": "^6.2.1",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",
     "wkt-parser": "^1.5.2"

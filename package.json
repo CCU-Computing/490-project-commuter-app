@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test:postman": "newman run tests/postman_collection.json -e tests/postman_env.json"
+  },
+  "dependencies": {
+    "newman": "^6.2.1"
+  }
+}
