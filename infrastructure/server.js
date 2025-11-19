@@ -31,6 +31,7 @@ const dataDir = path.join(projectRoot, 'data');
 const phpDocRoot = process.env.PHP_DOCROOT || path.join(apiDir, 'models');
 const phpHost = process.env.PHP_DEV_HOST || '127.0.0.1';
 const phpPort = Number(process.env.PHP_DEV_PORT) || 8081;
+const phpPublicHost = process.env.PHP_PUBLIC_HOST || phpHost;
 const autoStartPhp = (process.env.START_PHP_FRONTEND ?? 'true').toLowerCase() !== 'false';
 
 console.log('[startup] __dirname:', __dirname);
@@ -42,6 +43,30 @@ console.log('[startup] dataDir:', dataDir);
 
 let phpProcess = null;
 let autoPhpOrigin = null;
+let frontendOrigin = null;
+const disableFrontendValues = new Set(['none', 'disable', 'off']);
+
+function resolveFrontendOrigin() {
+  const raw = process.env.FRONTEND_PHP_ORIGIN;
+  if (raw) {
+    if (disableFrontendValues.has(raw.toLowerCase())) return null;
+    return raw;
+  }
+  return autoPhpOrigin;
+}
+
+function refreshFrontendOrigin(reason = 'startup') {
+  const next = resolveFrontendOrigin();
+  if (next === frontendOrigin) return;
+  frontendOrigin = next;
+  if (frontendOrigin) {
+    console.log(`[frontend] ${reason}: PHP frontend proxy enabled -> ${frontendOrigin}`);
+  } else {
+    console.log(`[frontend] ${reason}: PHP frontend proxy disabled; serving static fallback if available.`);
+  }
+}
+
+refreshFrontendOrigin('initial');
 
 function startPhpDevServer() {
   if (!autoStartPhp) {
@@ -51,6 +76,8 @@ function startPhpDevServer() {
 
   if (!fs.existsSync(phpDocRoot)) {
     console.warn('[startup] Cannot auto-start PHP server; doc root missing:', phpDocRoot);
+    autoPhpOrigin = null;
+    refreshFrontendOrigin('php-missing-docroot');
     return;
   }
 
@@ -59,19 +86,27 @@ function startPhpDevServer() {
     phpProcess = spawn('php', ['-S', `${phpHost}:${phpPort}`, '-t', phpDocRoot], {
       stdio: ['ignore', 'inherit', 'inherit'],
     });
-    autoPhpOrigin = `http://${phpHost}:${phpPort}`;
+    phpProcess.once('spawn', () => {
+      autoPhpOrigin = `http://${phpPublicHost}:${phpPort}`;
+      refreshFrontendOrigin('php-start');
+    });
 
     phpProcess.on('error', (err) => {
       console.error('[startup] Failed to launch PHP dev server:', err.message);
       autoPhpOrigin = null;
+      refreshFrontendOrigin('php-error');
     });
 
     phpProcess.on('exit', (code, signal) => {
       console.log(`[startup] PHP dev server exited (code=${code}, signal=${signal})`);
       phpProcess = null;
+      autoPhpOrigin = null;
+      refreshFrontendOrigin('php-exit');
     });
   } catch (err) {
     console.error('[startup] Error spawning PHP dev server:', err);
+    autoPhpOrigin = null;
+    refreshFrontendOrigin('php-spawn-exception');
   }
 }
 
@@ -96,33 +131,34 @@ process.on('SIGTERM', () => {
 });
 
 // --- PHP frontend redirect (non-breaking) ---
-const resolvedFrontendOrigin = (() => {
-  const raw = process.env.FRONTEND_PHP_ORIGIN;
-  if (raw) {
-    if (['none', 'disable', 'off'].includes(raw.toLowerCase())) return null;
-    return raw;
+function redirectToFrontend(req, res, next, includePath = false) {
+  if (!frontendOrigin) return next();
+  if (includePath) {
+    return res.redirect(frontendOrigin + req.originalUrl);
   }
-  return autoPhpOrigin;
-})();
-const FRONTEND_PHP_ORIGIN = resolvedFrontendOrigin;
-
-if (FRONTEND_PHP_ORIGIN) {
-  console.log('[startup] PHP frontend proxy enabled ->', FRONTEND_PHP_ORIGIN);
-  // Redirect root and any HTML navigations to the PHP server
-  app.get('/', (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
-  app.get(['/index.php','/index.html'], (req, res) => res.redirect(FRONTEND_PHP_ORIGIN));
-  app.use((req, res, next) => {
-    const acceptsHTML = (req.headers.accept || '').includes('text/html');
-    const isApi = req.path.startsWith('/api');
-    if (acceptsHTML && !isApi) return res.redirect(FRONTEND_PHP_ORIGIN + req.originalUrl);
-    next();
-  });
-  // Optional: quiet favicon.ico when using PHP frontend
-  app.get('/favicon.ico', (req, res) => res.status(204).end());
-} else {
-  console.log('[startup] PHP frontend proxy disabled; serving static fallback if available.');
+  return res.redirect(frontendOrigin);
 }
-// --- end PHP frontend block ---
+
+// Redirect root/index requests when the PHP frontend is active
+app.get('/', (req, res, next) => redirectToFrontend(req, res, next, false));
+app.get(['/index.php', '/index.html'], (req, res, next) => redirectToFrontend(req, res, next, false));
+
+// Redirect general HTML navigation when proxying to PHP
+app.use((req, res, next) => {
+  if (!frontendOrigin) return next();
+  const acceptsHTML = (req.headers.accept || '').includes('text/html');
+  const isApi = req.path.startsWith('/api');
+  if (acceptsHTML && !isApi) {
+    return redirectToFrontend(req, res, next, true);
+  }
+  next();
+});
+
+// Optional: quiet favicon.ico when using PHP frontend
+app.get('/favicon.ico', (req, res, next) => {
+  if (!frontendOrigin) return next();
+  res.status(204).end();
+});
 
 // Optional static index fallback (when not proxied to PHP)
 let fallbackIndexPath = null;
@@ -256,8 +292,9 @@ if (fs.existsSync(dataDir)) {
   console.warn('[startup] /data directory missing; /data routes disabled.');
 }
 
-if (fallbackIndexPath && !FRONTEND_PHP_ORIGIN) {
+if (fallbackIndexPath) {
   app.get(/^\/(?!api|data).*/, (req, res, next) => {
+    if (frontendOrigin) return next();
     res.sendFile(fallbackIndexPath, (err) => {
       if (err) next(err);
     });
