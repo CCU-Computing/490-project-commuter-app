@@ -1,0 +1,13 @@
+{
+  "id": "commuter-app-local-env",
+  "name": "Commuter App Local",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "enabled": true },
+    { "key": "route_id", "value": "", "enabled": true },
+    { "key": "stop_id", "value": "", "enabled": true },
+    { "key": "fulfillment_id", "value": "", "enabled": true },
+    { "key": "lotCode", "value": "", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_using": "Codex CLI"
+}
